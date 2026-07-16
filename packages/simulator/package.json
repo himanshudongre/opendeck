@@ -1,0 +1,18 @@
+{
+  "name": "@agentdeck/simulator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@agentdeck/protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.10",
+    "vitest": "^4.1.10"
+  }
+}

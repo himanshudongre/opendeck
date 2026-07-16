@@ -1,0 +1,33 @@
+name: Feature request
+description: Propose an improvement to AgentDeck
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can't you do today, or what is harder than it should be?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Deck UI / widgets
+        - Hub / server
+        - Adapters (Claude, Codex, other harnesses)
+        - Pairing / security
+        - Docs
+    validations:
+      required: true

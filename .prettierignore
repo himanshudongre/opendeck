@@ -1,0 +1,12 @@
+dist/
+coverage/
+dev-dist/
+node_modules/
+playwright-report/
+test-results/
+pnpm-lock.yaml
+CHANGELOG.md
+*.woff
+*.woff2
+*.png
+*.gif

@@ -13,7 +13,7 @@ OpenAI's Codex Micro ($230, limited run) sells two real things: **ambient glance
 
 AgentDeck delivers both of those experiences — and everything the plastic can't — using a device the user already owns:
 
-- **Unlimited agents**, not six. Every tile shows status color *plus* harness, repo/branch, elapsed time, current tool, and token cost.
+- **Unlimited agents**, not six. Every tile shows status color _plus_ harness, repo/branch, elapsed time, current tool, and token cost.
 - **Real approvals.** When an agent asks for permission, the deck shows the actual command or diff and lets you approve, deny, or always-allow. An RGB key can only blink at you.
 - **Harness-agnostic.** Claude Code and Codex at launch, behind one adapter interface. OpenCode next. A simulator adapter ships in v1 for demos and tests.
 - **A peripheral, not another dashboard.** Fullscreen, chrome-less, always-awake, designed to sit on a stand next to the keyboard and be read from across the room. This is the positioning wedge: existing tools (amux, CliDeck, Omnara, Happy, Claude Code's own Agent View) are remote-control dashboards. AgentDeck is desk furniture.
@@ -46,12 +46,12 @@ AgentDeck delivers both of those experiences — and everything the plastic can'
 
 Three artifacts, one monorepo:
 
-| Package | What it is |
-|---|---|
-| `packages/protocol` | Zod schemas + TypeScript types for every message. The single source of truth. |
-| `packages/hub` | Node CLI + server. Owns adapters, sessions, auth, WebSocket fan-out, and serves the built deck. Published to npm as `agentdeck`. |
-| `packages/deck` | The PWA. React + Vite + Tailwind. No component library — custom design system (§7). |
-| `packages/simulator` | Deterministic fake agent driving demos, screenshots, and E2E tests. |
+| Package              | What it is                                                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/protocol`  | Zod schemas + TypeScript types for every message. The single source of truth.                                                    |
+| `packages/hub`       | Node CLI + server. Owns adapters, sessions, auth, WebSocket fan-out, and serves the built deck. Published to npm as `agentdeck`. |
+| `packages/deck`      | The PWA. React + Vite + Tailwind. No component library — custom design system (§7).                                              |
+| `packages/simulator` | Deterministic fake agent driving demos, screenshots, and E2E tests.                                                              |
 
 ---
 
@@ -107,11 +107,11 @@ kind = "approve" | "deny" | "always_allow" | "interrupt" | "prompt_template"
 
 ### 3.4 Latency budget (the "absolutely no lag" contract)
 
-| Path | Budget (p95, LAN) |
-|---|---|
-| Deck input → hub ack round-trip | **< 30 ms** |
-| Adapter event → tile paint | < 1 frame after WS receive (< 50 ms end-to-end) |
-| Dial drag → on-screen response | 0 ms (optimistic local), value sync ≤ 16 ms coalesced |
+| Path                            | Budget (p95, LAN)                                     |
+| ------------------------------- | ----------------------------------------------------- |
+| Deck input → hub ack round-trip | **< 30 ms**                                           |
+| Adapter event → tile paint      | < 1 frame after WS receive (< 50 ms end-to-end)       |
+| Dial drag → on-screen response  | 0 ms (optimistic local), value sync ≤ 16 ms coalesced |
 
 Engineering rules that make this real: high-frequency inputs (dial, jog) are coalesced client-side to one message per animation frame carrying only the latest value; all optimistic UI with server reconciliation on `ack`; WS messages are small flat JSON (no transcript bodies on the deck grid — transcript streams only when a Focus view is open); animations use `transform`/`opacity`/`filter` only. A perf test in CI asserts the round-trip budget (§9).
 
@@ -124,9 +124,9 @@ One interface, per-session capability flags:
 ```ts
 interface Adapter {
   harness: Harness;
-  detect(): Promise<DetectResult>;                    // installed? version? path?
-  spawn(opts: SpawnOpts): Promise<ManagedSession>;    // managed mode
-  attachObservers(): Promise<void>;                   // observed mode (if supported)
+  detect(): Promise<DetectResult>; // installed? version? path?
+  spawn(opts: SpawnOpts): Promise<ManagedSession>; // managed mode
+  attachObservers(): Promise<void>; // observed mode (if supported)
   dispose(): Promise<void>;
 }
 ```
@@ -136,12 +136,14 @@ interface Adapter {
 ### 4.1 Claude Code
 
 **Managed sessions (full control)** — via `@anthropic-ai/claude-agent-sdk`:
+
 - Spawn with streaming input; map SDK message stream → `event`s and `SessionStatus`.
 - **Approvals:** the SDK's `canUseTool` callback becomes a `permission_request` to the deck (tool name, pretty-printed input, diff preview for file edits). The callback resolves when the user taps approve/deny/always-allow. Configurable timeout (default: none — wait).
 - **Dial:** maps to model select (Haiku/Sonnet/Opus tiers) and thinking budget (`maxThinkingTokens` steps: off / 4k / 16k / 32k). Both are per-session settings surfaced as dial detents.
 - Resume via session id.
 
 **Observed sessions (the terminal the user already has open)** — via Claude Code **HTTP hooks**. `agentdeck connect claude` writes hook config (scoped to `~/.claude/settings.json` or a project's `.claude/settings.json`, user's choice, idempotent, with clean `disconnect` removal) that POSTs lifecycle events to the hub:
+
 - `SessionStart` / `SessionEnd` → session upsert/remove
 - `UserPromptSubmit` → status `thinking`
 - `PreToolUse` / `PostToolUse` → status `working` + `currentTool`
@@ -187,15 +189,15 @@ $ npx agentdeck
 
 **Widgets (all bindable, all configurable):**
 
-| Widget | Behavior |
-|---|---|
-| **Agent Tile** | The hero. Status glow + name + harness mark + branch + elapsed + current tool line + cost meter. Tap → Focus. Long-press → quick actions. Sizes S/M/L. |
+| Widget         | Behavior                                                                                                                                                                          |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Agent Tile** | The hero. Status glow + name + harness mark + branch + elapsed + current tool line + cost meter. Tap → Focus. Long-press → quick actions. Sizes S/M/L.                            |
 | **Action Key** | Bind to any Action (§3.3): approve, interrupt, retry, commit, run tests, prompt snippet, custom shell (confirm-gated). Icon + label, per-key accent, press physics + haptic tick. |
-| **Dial** | Circular drag with detents. Binds per-harness: Claude model/thinking, Codex reasoning effort. Haptic tick per detent, brass needle, current value in mono type. |
-| **Jog Pad** | Four-direction flick pad mapped to prompt-template workflows ("fix failing tests", "review diff", user-defined with `{{variables}}`). |
-| **Voice Key** | Hold-to-talk → Web Speech API → live transcript overlay → release to send to focused session. Language configurable. |
-| **Ticker** | One-line scrolling feed of fleet events. |
-| **Stat Bar** | Fleet totals: running/waiting counts, today's tokens/cost, hub latency ms (live, honest). |
+| **Dial**       | Circular drag with detents. Binds per-harness: Claude model/thinking, Codex reasoning effort. Haptic tick per detent, brass needle, current value in mono type.                   |
+| **Jog Pad**    | Four-direction flick pad mapped to prompt-template workflows ("fix failing tests", "review diff", user-defined with `{{variables}}`).                                             |
+| **Voice Key**  | Hold-to-talk → Web Speech API → live transcript overlay → release to send to focused session. Language configurable.                                                              |
+| **Ticker**     | One-line scrolling feed of fleet events.                                                                                                                                          |
+| **Stat Bar**   | Fleet totals: running/waiting counts, today's tokens/cost, hub latency ms (live, honest).                                                                                         |
 
 **Layouts:** v1 ships four presets (Phone Portrait, Phone Landscape, Tablet, Desktop Strip) plus edit mode for reordering tiles, toggling widgets, resizing tiles, and configuring bindings. Layouts and themes serialize to shareable JSON. Free-form grid editor is v1.1.
 
@@ -205,26 +207,26 @@ $ npx agentdeck
 
 ## 7. Design language — "Backlit Hardware"
 
-The deck must read as a *device*, not a web page. One signature idea, executed with discipline: **every control is a backlit frosted keycap on a machined slab.**
+The deck must read as a _device_, not a web page. One signature idea, executed with discipline: **every control is a backlit frosted keycap on a machined slab.**
 
 ### 7.1 Tokens (Graphite, default theme)
 
-| Token | Value | Use |
-|---|---|---|
-| `surface-0` | `#0E0F12` | Deck slab background |
-| `surface-1` | `#16181D` | Panels, focus view |
-| `key-face` | `#1E2127` + `rgba(255,255,255,.05)` top-edge inset highlight | Keycap body |
-| `hairline` | `#2A2E36` | 1px machined seams |
-| `ink-1 / ink-2 / ink-3` | `#E9EBEE / #9BA1AC / #5C626D` | Text hierarchy |
-| `brass` | `#D8B36A` | Dial needle, focus rings, brand marks — the machined-metal accent. **Never** used for status. |
-| status `thinking` | `#A78BFA` breathing (2.4 s) | violet |
-| status `working` | `#4CC2FF` steady | cyan |
-| status `waiting_*` | `#FFB454` pulse (1.2 s) | amber — the "look at me" color |
-| status `done` | `#3ECF8E` | green |
-| status `error` | `#FF5D5D` | red |
-| status `idle/disconnected` | `#3A3F48` | dim |
+| Token                      | Value                                                        | Use                                                                                           |
+| -------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| `surface-0`                | `#0E0F12`                                                    | Deck slab background                                                                          |
+| `surface-1`                | `#16181D`                                                    | Panels, focus view                                                                            |
+| `key-face`                 | `#1E2127` + `rgba(255,255,255,.05)` top-edge inset highlight | Keycap body                                                                                   |
+| `hairline`                 | `#2A2E36`                                                    | 1px machined seams                                                                            |
+| `ink-1 / ink-2 / ink-3`    | `#E9EBEE / #9BA1AC / #5C626D`                                | Text hierarchy                                                                                |
+| `brass`                    | `#D8B36A`                                                    | Dial needle, focus rings, brand marks — the machined-metal accent. **Never** used for status. |
+| status `thinking`          | `#A78BFA` breathing (2.4 s)                                  | violet                                                                                        |
+| status `working`           | `#4CC2FF` steady                                             | cyan                                                                                          |
+| status `waiting_*`         | `#FFB454` pulse (1.2 s)                                      | amber — the "look at me" color                                                                |
+| status `done`              | `#3ECF8E`                                                    | green                                                                                         |
+| status `error`             | `#FF5D5D`                                                    | red                                                                                           |
+| status `idle/disconnected` | `#3A3F48`                                                    | dim                                                                                           |
 
-**Signature — Deskglow:** each tile's status color bleeds a soft radial glow onto the slab beneath it, and the page's ambient edges tint toward the *aggregate* fleet state. From across the room, the whole screen is one big status light. If everything's amber, you know before you can read a word. (Subtle: ≤ 8% opacity fields, disabled under reduced-motion-and-transparency preferences.)
+**Signature — Deskglow:** each tile's status color bleeds a soft radial glow onto the slab beneath it, and the page's ambient edges tint toward the _aggregate_ fleet state. From across the room, the whole screen is one big status light. If everything's amber, you know before you can read a word. (Subtle: ≤ 8% opacity fields, disabled under reduced-motion-and-transparency preferences.)
 
 ### 7.2 Type & texture
 

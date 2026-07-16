@@ -1,0 +1,28 @@
+{
+  "name": "@agentdeck/root",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.13.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter agentdeck dev",
+    "build": "pnpm -r build",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --if-present test",
+    "e2e": "pnpm --filter @agentdeck/e2e e2e",
+    "perf": "pnpm --filter @agentdeck/e2e perf",
+    "changeset": "changeset"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.1",
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.7.2",
+    "eslint": "^9.39.5",
+    "prettier": "^3.9.5",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.64.0"
+  }
+}

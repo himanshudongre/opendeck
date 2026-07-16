@@ -1,0 +1,53 @@
+name: Bug report
+description: Something in AgentDeck is broken
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: AgentDeck version
+      description: Output of `agentdeck --version`
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Node version, and the device/browser running the deck
+      placeholder: macOS 15, Node 22, iPhone 14 Safari
+    validations:
+      required: true
+  - type: dropdown
+    id: harness
+    attributes:
+      label: Harness involved
+      options:
+        - Claude Code (managed)
+        - Claude Code (observed / hooks)
+        - Codex
+        - Simulator / --demo
+        - None / deck or hub itself
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `agentdeck --demo`
+        2. Pair a phone
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Hub logs
+      description: Relevant lines from `~/.agentdeck/logs/`
+      render: text

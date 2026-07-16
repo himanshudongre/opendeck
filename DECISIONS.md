@@ -16,10 +16,20 @@ Small, dated records of choices the spec left open. One line of rationale each.
 - **TypeScript 5.9.x** — TS 7 (Go compiler) is out but typescript-eslint 8.x officially supports ≤ 5.9; strict-lint gates matter more than compiler speed here.
 - Fastify 5.10, ws 8.21, execa 9, commander 15, pino 10, tsup 8.5, Vitest 4.1, Vite 8.1, Tailwind 4.3, motion 12, vite-plugin-pwa 1.3, Playwright 1.61, ESLint 10 + typescript-eslint 8, Changesets 2.31.
 
+## Scaffold (Phase 1)
+
+- ESLint pinned to 9.x (not 10.x): typescript-eslint 8's supported peer range; the whole quality gate rides on strict type-aware linting working flawlessly.
+- Vite pinned to 7.x (not 8.x): vite-plugin-pwa 1.3 and the current Vitest/browser tooling are validated against Vite 7.
+- `@agentdeck/protocol` and `@agentdeck/simulator` stay private and unbuilt (`main` → `src/index.ts`); tsup bundles them into the published `agentdeck` package via `noExternal`. One npm artifact, no internal version skew.
+- Hub package version starts at 0.0.0 so the initial major changeset releases exactly 1.0.0.
+- Lint gate = `eslint . && prettier --check .`; the banned-comment rule is `@eslint-community/eslint-comments/no-use` (bans all eslint directive comments, not just eslint-disable).
+- Package `test` scripts are added only once a package has test files (empty Vitest suites exit non-zero; `passWithNoTests` would mask real misconfiguration).
+- pnpm 11 wrote `allowBuilds`/`minimumReleaseAgeExclude` entries into pnpm-workspace.yaml (its supply-chain guard); esbuild's postinstall approved as required by Vite/tsup.
+
 ## Phase log
 
 - [x] Phase 0 — Recon
-- [ ] Phase 1 — Scaffold
+- [x] Phase 1 — Scaffold
 - [ ] Phase 2 — Protocol
 - [ ] Phase 3 — Hub core
 - [ ] Phase 4 — Simulator

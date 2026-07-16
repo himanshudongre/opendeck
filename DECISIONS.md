@@ -45,6 +45,17 @@ Small, dated records of choices the spec left open. One line of rationale each.
 - `selfsigned` v5 is promise-based and takes `notAfterDate` (10-year cert), not `days`.
 - Invalid config.json degrades to defaults with printed problems — the hub never refuses to start over recoverable config.
 
+## Real adapters (Phase 5)
+
+- **Claude managed** rides `@anthropic-ai/claude-agent-sdk` `query()` in streaming-input mode with `settingSources: []` (managed sessions must not load the user's hooks, or observed mode would double-report them). Dial: `setModel` (haiku/sonnet/opus aliases) and `setMaxThinkingTokens` (off/4k/16k/32k → 0/4096/16384/32768).
+- The claude-stream fixture is **real recorded output** from the installed `claude 2.1.101` (`-p --output-format stream-json --verbose`, haiku, sanitized paths, rate_limit_event line dropped). The error-result fixture is synthetic but typed against the SDK's `SDKResultError`.
+- **Claude observed** uses command hooks that POST the hook's stdin JSON to `http://127.0.0.1:<port>/api/hooks/claude` via curl (`--max-time 3` fire-and-forget for lifecycle events; `--max-time 310` for `PermissionRequest`, hook `timeout: 320`). The 2.1.x hook schema supports answering PermissionRequest via `hookSpecificOutput.decision` (verified against the SDK's mirrored types), so terminal sessions get deck approvals. Fast-fallback rules: no deck clients connected → immediate 204 (normal terminal prompt); deck silent for 5 minutes → dismiss and 204.
+- The hooks route only accepts loopback sources; `connect`/`disconnect` are idempotent, marker = the `/api/hooks/claude` URL substring, and they never touch non-AgentDeck hooks.
+- **Codex** floor is `codex exec --json` (JSONL), `exec resume <thread_id>` per follow-up turn, `-c model_reasoning_effort=` for the dial, `--sandbox` presets via a confirm-style custom action. Codex isn't installed here, so the JSONL fixtures follow the documented event shapes (`thread.started`, `turn.*`, `item.*` with `command_execution`/`file_change`/`agent_message`/`reasoning`/`mcp_tool_call`/`web_search`) and `detect()` re-verifies `--json` support on machines that have Codex; the app-server JSON-RPC mode was left out because there is no installed binary to verify it against (SPEC §4.2 keeps exec as the guaranteed floor).
+- Codex exec cannot answer interactive approvals mid-stream, so codex sessions honestly omit the `approve` capability; the shared contract suite asserts that instead of skipping.
+- Contract suite: process boundaries are injectable (`QueryFn` for the SDK, `CodexRunner` for execa, gateway takes raw hook payloads), so fixtures replay against real Hub instances and assert broadcast-level behavior.
+- Hub `dispatch` converts controller validation throws (unknown dial detents, bad presets) into `bad_message` protocol errors instead of `internal`.
+
 ## Phase log
 
 - [x] Phase 0 — Recon
@@ -52,7 +63,7 @@ Small, dated records of choices the spec left open. One line of rationale each.
 - [x] Phase 2 — Protocol
 - [x] Phase 3 — Hub core
 - [x] Phase 4 — Simulator
-- [ ] Phase 5 — Real adapters
+- [x] Phase 5 — Real adapters
 - [ ] Phase 6 — Deck
 - [ ] Phase 7 — E2E + perf
 - [ ] Phase 8 — Docs & release

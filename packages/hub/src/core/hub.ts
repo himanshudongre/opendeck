@@ -33,6 +33,8 @@ export interface HubOptions {
   customActions?: CustomAction[];
   /** Injected so core stays process-free and tests stay hermetic. */
   runShell?: ShellRunner;
+  /** Spawns a managed session for a `new_session` deck action. */
+  spawnSession?: (args: Record<string, string | number | boolean>) => Promise<void>;
   now?: () => number;
 }
 
@@ -60,8 +62,11 @@ export class Hub {
   private readonly pending = new Map<string, PendingPermission>();
   private readonly customActions: CustomAction[];
   private readonly runShell: ShellRunner | undefined;
+  private readonly spawnSession:
+    ((args: Record<string, string | number | boolean>) => Promise<void>) | undefined;
   private readonly now: () => number;
   private seq = 0;
+  private connectedClients = 0;
 
   constructor(options: HubOptions) {
     this.hubId = options.hubId ?? newId('hub');
@@ -69,7 +74,21 @@ export class Hub {
     this.buffer = new ReplayBuffer(options.bufferCapacity ?? 1000);
     this.customActions = options.customActions ?? [];
     this.runShell = options.runShell;
+    this.spawnSession = options.spawnSession;
     this.now = options.now ?? Date.now;
+  }
+
+  /** Connected deck clients, maintained by the socket layer. */
+  clientConnected(): void {
+    this.connectedClients += 1;
+  }
+
+  clientDisconnected(): void {
+    this.connectedClients = Math.max(0, this.connectedClients - 1);
+  }
+
+  hasClients(): boolean {
+    return this.connectedClients > 0;
   }
 
   // -------------------------------------------------------------------------
@@ -208,6 +227,20 @@ export class Hub {
 
   /** Connection-independent client messages. Returns what to ack or reject. */
   async dispatch(msg: ClientMsg): Promise<DispatchResult> {
+    try {
+      return await this.dispatchInner(msg);
+    } catch (error) {
+      // Controllers throw on invalid values (a dial detent the harness
+      // doesn't have); that's the deck's mistake, not a hub failure.
+      return {
+        ok: false,
+        code: 'bad_message',
+        message: error instanceof Error ? error.message : 'The adapter rejected that request.',
+      };
+    }
+  }
+
+  private async dispatchInner(msg: ClientMsg): Promise<DispatchResult> {
     switch (msg.type) {
       case 'action':
         return this.runAction(msg.payload);
@@ -321,7 +354,11 @@ export class Hub {
               message: `${custom.label} failed: ${result.output.slice(0, 500)}`,
             };
       }
-      case 'new_session':
+      case 'new_session': {
+        if (!this.spawnSession) return this.unsupported('new_session');
+        await this.spawnSession(action.args ?? {});
+        return { ok: true };
+      }
       case 'compact':
       case 'custom': {
         if (!action.sessionId) return this.needsSession(action.kind);

@@ -16,6 +16,13 @@ export interface HttpDeps {
   /** Absolute path to the built deck assets; undefined in source checkouts before a build. */
   deckDir?: string;
   onPaired?: (deviceName: string) => void;
+  /** Claude Code hook POSTs land here (observed sessions, SPEC §4.1). */
+  claudeHooks?: (payload: unknown) => Promise<HookGatewayResponse>;
+}
+
+export interface HookGatewayResponse {
+  status: 200 | 204;
+  body?: Record<string, unknown>;
 }
 
 const PairBodySchema = z.object({
@@ -91,6 +98,23 @@ export async function registerRoutes(app: FastifyInstance, deps: HttpDeps): Prom
       protocolVersion: PROTOCOL_VERSION,
     });
   });
+
+  if (deps.claudeHooks !== undefined) {
+    const claudeHooks = deps.claudeHooks;
+    app.post('/api/hooks/claude', async (req, reply) => {
+      // Hooks come from CLIs on this machine, never from paired devices.
+      if (req.ip !== '127.0.0.1' && req.ip !== '::1') {
+        return reply
+          .status(403)
+          .send({ error: 'Hook events are accepted from this machine only.' });
+      }
+      const result = await claudeHooks(req.body);
+      if (result.status === 200 && result.body !== undefined) {
+        return reply.status(200).send(result.body);
+      }
+      return reply.status(204).send();
+    });
+  }
 
   app.get('/api/snapshot', (req, reply) => {
     if (!authenticateRequest(req, deps)) {

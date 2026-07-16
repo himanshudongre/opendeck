@@ -47,6 +47,14 @@ describe('startDemoFleet', () => {
     const waiting = hub.pendingPermissionsFor('sim-auth');
     expect(waiting.length + hub.pendingPermissionsFor('sim-invoice').length).toBeGreaterThan(0);
 
+    const interrupt = await hub.dispatch({
+      v: 1,
+      id: 'c-int',
+      type: 'action',
+      payload: { sessionId: 'sim-router', kind: 'interrupt' },
+    });
+    expect(interrupt).toEqual({ ok: true });
+
     const kill = await hub.dispatch({
       v: 1,
       id: 'c-3',
@@ -56,6 +64,15 @@ describe('startDemoFleet', () => {
     expect(kill).toEqual({ ok: true });
     expect(hub.snapshot().find((s) => s.id === 'sim-docs')).toBeUndefined();
 
+    fleet.stop();
+    await vi.advanceTimersByTimeAsync(1000);
+  });
+
+  it('starts with default pacing when no options are given', async () => {
+    const hub = new Hub({ version: '1.0.0-test' });
+    const fleet = startDemoFleet(hub);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(hub.snapshot()).toHaveLength(7);
     fleet.stop();
     await vi.advanceTimersByTimeAsync(1000);
   });

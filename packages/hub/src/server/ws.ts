@@ -116,13 +116,16 @@ export function attachWs(server: HttpServer | HttpsServer, deps: WsDeps): WebSoc
     wss.handleUpgrade(req, socket, head, (ws) => {
       const conn: ClientConn = { ws, deviceId, transcriptSessionId: null, lastSeenAt: Date.now() };
       conns.add(conn);
+      deps.hub.clientConnected();
       greet(conn, lastSeq);
 
       ws.on('message', (data: Buffer | ArrayBuffer | Buffer[]) => {
         conn.lastSeenAt = Date.now();
         handleMessage(conn, data);
       });
-      ws.on('close', () => conns.delete(conn));
+      ws.on('close', () => {
+        if (conns.delete(conn)) deps.hub.clientDisconnected();
+      });
       ws.on('error', (error) => log.warn({ err: error }, 'websocket error'));
     });
   });

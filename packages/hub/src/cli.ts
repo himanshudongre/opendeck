@@ -2,6 +2,7 @@
 import { createRequire } from 'node:module';
 import { Command } from 'commander';
 import qrcode from 'qrcode-terminal';
+import { connectClaude, disconnectClaude, type ConnectScope } from './adapters/claude/connect.js';
 import { startDemoFleet } from './adapters/simulator.js';
 import { loadConfig } from './config.js';
 import { logger, term } from './logger.js';
@@ -51,7 +52,12 @@ async function run(flags: RunFlags): Promise<void> {
       })
     : undefined;
 
-  printBanner(running, { noAuth, demo });
+  const detections = await running.detectAdapters();
+  printBanner(running, {
+    noAuth,
+    demo,
+    harnessNotes: detections.flatMap((d) => (d.note === undefined ? [] : [d.note])),
+  });
 
   const shutdown = (): void => {
     term.line('');
@@ -63,10 +69,16 @@ async function run(flags: RunFlags): Promise<void> {
   process.once('SIGTERM', shutdown);
 }
 
-function printBanner(running: RunningHub, opts: { noAuth: boolean; demo: boolean }): void {
+function printBanner(
+  running: RunningHub,
+  opts: { noAuth: boolean; demo: boolean; harnessNotes: string[] },
+): void {
   const primaryUrl = running.lanUrls[0] ?? `http://localhost:${running.port}`;
   term.line('');
   term.line(`  ▲ AgentDeck hub v${pkg.version}${opts.demo ? ' · demo fleet' : ''}`);
+  if (opts.harnessNotes.length > 0) {
+    term.line(`  ${opts.harnessNotes.map((note) => `● ${note}`).join(' · ')}`);
+  }
   term.line('');
   if (running.host === '127.0.0.1') {
     term.line(`  Deck ready →  http://localhost:${running.port}   (localhost only)`);
@@ -129,6 +141,48 @@ export function buildProgram(): Command {
     .option('--localhost-only', 'bind to 127.0.0.1 instead of the LAN')
     .option('--no-auth', 'skip device pairing (loud warning; trusted networks only)')
     .action((flags: RunFlags) => run(flags));
+
+  program
+    .command('connect')
+    .argument('<harness>', 'harness to observe (claude)')
+    .option('--project', 'write hooks to this project’s .claude/settings.json instead of ~/.claude')
+    .description('report your own terminal sessions to the deck via hooks')
+    .action((harness: string, opts: { project?: boolean }) => {
+      if (harness !== 'claude') {
+        term.error(`Observed mode supports claude for now, not ${harness}.`);
+        process.exitCode = 1;
+        return;
+      }
+      const scope: ConnectScope = opts.project === true ? 'project' : 'user';
+      const config = loadConfig();
+      const result = connectClaude({ scope, port: config.config.port });
+      term.line(
+        result.changed
+          ? `Hooks written to ${result.path}. Claude Code sessions now show on the deck while the hub runs.`
+          : `Hooks already present in ${result.path}. Nothing to do.`,
+      );
+    });
+
+  program
+    .command('disconnect')
+    .argument('<harness>', 'harness to stop observing (claude)')
+    .option('--project', 'remove hooks from this project’s .claude/settings.json')
+    .description('remove the hooks written by connect')
+    .action((harness: string, opts: { project?: boolean }) => {
+      if (harness !== 'claude') {
+        term.error(`Observed mode supports claude for now, not ${harness}.`);
+        process.exitCode = 1;
+        return;
+      }
+      const scope: ConnectScope = opts.project === true ? 'project' : 'user';
+      const config = loadConfig();
+      const result = disconnectClaude({ scope, port: config.config.port });
+      term.line(
+        result.changed
+          ? `Removed AgentDeck hooks from ${result.path}.`
+          : `No AgentDeck hooks found in ${result.path}.`,
+      );
+    });
 
   const devices = program.command('devices').description('manage paired deck devices');
   devices.command('list').description('list paired devices').action(devicesList);

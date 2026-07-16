@@ -140,4 +140,12 @@ describe('loadConfig', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.problems[0]).toContain('port');
   });
+
+  it('labels top-level type problems as (root)', () => {
+    mkdirSync(dirname(configPath()), { recursive: true });
+    writeFileSync(configPath(), '42');
+    const result = loadConfig();
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.problems[0]).toContain('(root)');
+  });
 });

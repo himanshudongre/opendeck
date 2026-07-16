@@ -44,6 +44,15 @@ export default tseslint.config(
     },
   },
   {
+    // Query.setMaxThinkingTokens is deprecated in favor of the spawn-time
+    // `thinking` option, but it is the SDK's only LIVE thinking-budget
+    // control — exactly what the deck's dial needs mid-session.
+    files: ['packages/hub/src/adapters/claude/managed.ts'],
+    rules: {
+      '@typescript-eslint/no-deprecated': 'off',
+    },
+  },
+  {
     files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
     extends: [tseslint.configs.disableTypeChecked],
   },

@@ -4,6 +4,10 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { WebSocketServer } from 'ws';
+import { ClaudeHooksGateway } from '../adapters/claude/hooks.js';
+import { ClaudeManagedAdapter } from '../adapters/claude/managed.js';
+import { CodexAdapter } from '../adapters/codex/exec.js';
+import type { Adapter, DetectResult } from '../adapters/types.js';
 import type { HubConfig } from '../config.js';
 import { Hub } from '../core/hub.js';
 import { logger } from '../logger.js';
@@ -32,6 +36,8 @@ export interface RunningHub {
   hub: Hub;
   devices: DeviceStore;
   pairing: PairingManager;
+  adapters: Adapter[];
+  detectAdapters: () => Promise<DetectResult[]>;
   port: number;
   httpsPort: number | undefined;
   host: string;
@@ -53,11 +59,26 @@ export async function startHub(options: StartOptions): Promise<RunningHub> {
   const host = localhostOnly ? '127.0.0.1' : '0.0.0.0';
   const port = options.port ?? config.port;
 
+  const adapters: Adapter[] = [];
   const hub = new Hub({
     version: options.version,
     customActions: config.customActions,
     runShell: runShellAction,
+    spawnSession: async (args) => {
+      const harness = args.harness;
+      const adapter = adapters.find((entry) => entry.harness === harness);
+      if (!adapter) throw new Error(`No adapter for harness ${String(harness)}.`);
+      await adapter.spawn({
+        cwd: typeof args.cwd === 'string' ? args.cwd : process.cwd(),
+        ...(typeof args.prompt === 'string' ? { prompt: args.prompt } : {}),
+        ...(typeof args.model === 'string' ? { model: args.model } : {}),
+      });
+    },
   });
+  const claude = new ClaudeManagedAdapter(hub);
+  const codex = new CodexAdapter(hub);
+  adapters.push(claude, codex);
+  const hooksGateway = new ClaudeHooksGateway(hub);
   const devices = new DeviceStore();
   const pairing = new PairingManager();
   const pairingLimiter = new RateLimiter();
@@ -71,6 +92,7 @@ export async function startHub(options: StartOptions): Promise<RunningHub> {
     authRequired,
     ...(deckDir === undefined ? {} : { deckDir }),
     ...(options.onPaired === undefined ? {} : { onPaired: options.onPaired }),
+    claudeHooks: (payload) => hooksGateway.handle(payload),
   };
 
   const app = await buildApp(httpDeps);
@@ -105,12 +127,15 @@ export async function startHub(options: StartOptions): Promise<RunningHub> {
     hub,
     devices,
     pairing,
+    adapters,
+    detectAdapters: () => Promise.all(adapters.map((adapter) => adapter.detect())),
     port: boundPort,
     httpsPort,
     host,
     lanUrls: addresses.map((ip) => `http://${ip}:${boundPort}`),
     mdnsUrl: `http://${mdnsName()}:${boundPort}`,
     close: async () => {
+      await Promise.all(adapters.map((adapter) => adapter.dispose()));
       for (const wss of sockets) {
         for (const client of wss.clients) client.terminate();
         wss.close();

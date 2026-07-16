@@ -418,6 +418,50 @@ describe('websocket edge cases', () => {
   });
 });
 
+describe('bind configuration', () => {
+  it('honors bind: localhost from config.json', async () => {
+    await running.close();
+    running = await startHub({
+      config: HubConfigSchema.parse({ bind: 'localhost' }),
+      version: '1.0.0-test',
+      port: 0,
+      httpsLane: false,
+    });
+    expect(running.host).toBe('127.0.0.1');
+    const res = await fetch(`${base()}/api/health`);
+    expect(res.status).toBe(200);
+  });
+});
+
+describe('claude hooks route', () => {
+  it('accepts loopback hook posts and creates observed sessions', async () => {
+    const res = await fetch(`${base()}/api/hooks/claude`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        session_id: 'terminal-1',
+        transcript_path: '/tmp/t.jsonl',
+        cwd: '/home/dev/acme/api',
+        hook_event_name: 'SessionStart',
+        source: 'startup',
+      }),
+    });
+    expect(res.status).toBe(204);
+    const session = running.hub.snapshot().find((s) => s.id === 'claude-obs-terminal-1');
+    expect(session?.mode).toBe('observed');
+  });
+
+  it('rejects new_session actions for unknown harnesses', async () => {
+    const result = await running.hub.dispatch({
+      v: 1,
+      id: 'c-ns',
+      type: 'action',
+      payload: { kind: 'new_session', args: { harness: 'opencode' } },
+    });
+    expect(result.ok).toBe(false);
+  });
+});
+
 describe('origin policy', () => {
   it('accepts same-host, dev-listed, and non-browser origins; rejects the rest', () => {
     expect(isOriginAllowed(undefined, 'studio.local:3325')).toBe(true);

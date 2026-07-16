@@ -26,12 +26,31 @@ Small, dated records of choices the spec left open. One line of rationale each.
 - Package `test` scripts are added only once a package has test files (empty Vitest suites exit non-zero; `passWithNoTests` would mask real misconfiguration).
 - pnpm 11 wrote `allowBuilds`/`minimumReleaseAgeExclude` entries into pnpm-workspace.yaml (its supply-chain guard); esbuild's postinstall approved as required by Vite/tsup.
 
+## Protocol design (Phase 2)
+
+- Sequence numbers are hub-global and stable across reconnects (replayed messages keep their original `seq`); "monotonic per connection" (SPEC §3.2) holds because every connection sees a strictly increasing stream. Stability is what makes `resume { lastSeq }` meaningful.
+- `hello` carries a `resume` discriminator (`fresh` / `resumed` / `snapshot`): the deck needs to know whether buffered messages follow or the hello itself is the catch-up.
+- Client may pass `lastSeq` as a WS query param at connect (same code path as the `resume` message) so resume is atomic with the handshake — no race with live broadcasts.
+- `set_effort` uses a generic `{ axis: model | thinking | effort, value }` shape; adapters validate values. Keeps the deck free of harness-specific logic (SPEC §3.1) while dial bindings stay per-harness configuration.
+- Session events are a discriminated union: `status`, `transcript`, `tool`, `stats`, `notice` (notice powers the Ticker). Transcript deltas fan out only to clients subscribed to that session (SPEC §3.4).
+- Permission resolutions from the deck are `approve/deny/always_allow`; `permission_resolved` adds `dismissed` (request became moot) and a `source` (deck vs harness) so every client can retire the card no matter who answered.
+
+## Hub core (Phase 3)
+
+- Replay buffer: one 1,000-entry ring per session (SPEC wording), `session_upsert`/`removed`/permission messages recorded in their session's ring; a resume gap in any ring falls back to a snapshot hello.
+- WS auth via `?device=&credential=` query params (browsers can't set WS headers); REST snapshot auth via `x-agentdeck-*` headers. Credentials stored sha256-hashed in devices.json, compared timing-safe.
+- Origin policy: same-hostname (any hub port) or explicitly allowed dev origins; absent Origin (non-browser clients) passes. Enforced at upgrade time with a 403.
+- Shell runner is injected into the hub core (`runShell`), keeping core process-free and unit tests hermetic; execa lives at the composition boundary.
+- Fastify runs with `logger: false`: fastify's type generics can't carry our pino instance under `exactOptionalPropertyTypes`, and hub logging already goes through `logger.ts`.
+- `selfsigned` v5 is promise-based and takes `notAfterDate` (10-year cert), not `days`.
+- Invalid config.json degrades to defaults with printed problems — the hub never refuses to start over recoverable config.
+
 ## Phase log
 
 - [x] Phase 0 — Recon
 - [x] Phase 1 — Scaffold
 - [x] Phase 2 — Protocol
-- [ ] Phase 3 — Hub core
+- [x] Phase 3 — Hub core
 - [ ] Phase 4 — Simulator
 - [ ] Phase 5 — Real adapters
 - [ ] Phase 6 — Deck

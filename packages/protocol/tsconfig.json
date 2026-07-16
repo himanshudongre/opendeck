@@ -3,7 +3,8 @@
   "compilerOptions": {
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "noEmit": true
+    "noEmit": true,
+    "lib": ["ES2023", "DOM"]
   },
   "include": ["src", "test", "vitest.config.ts"]
 }

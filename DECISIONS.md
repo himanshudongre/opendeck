@@ -14,7 +14,7 @@ Small, dated records of choices the spec left open. One line of rationale each.
 - **zod 3.25.x** — prompt pins zod v3 (zod 4 exists; not used).
 - **React 18.3.x** — prompt pins React 18 (React 19 exists; not used).
 - **TypeScript 5.9.x** — TS 7 (Go compiler) is out but typescript-eslint 8.x officially supports ≤ 5.9; strict-lint gates matter more than compiler speed here.
-- Fastify 5.10, ws 8.21, execa 9, commander 15, pino 10, tsup 8.5, Vitest 4.1, Vite 8.1, Tailwind 4.3, motion 12, vite-plugin-pwa 1.3, Playwright 1.61, ESLint 10 + typescript-eslint 8, Changesets 2.31.
+- Fastify 5.10, ws 8.21, execa 9, commander 15, pino 10, tsup 8.5, Vitest 4.1, Vite 7.x, Tailwind 4.3, motion 12, vite-plugin-pwa 1.3, Playwright 1.61, ESLint 9 + typescript-eslint 8, Changesets 2.31 (see Phase 1 notes for the ESLint/Vite pins).
 
 ## Scaffold (Phase 1)
 
@@ -51,7 +51,7 @@ Small, dated records of choices the spec left open. One line of rationale each.
 - [x] Phase 1 — Scaffold
 - [x] Phase 2 — Protocol
 - [x] Phase 3 — Hub core
-- [ ] Phase 4 — Simulator
+- [x] Phase 4 — Simulator
 - [ ] Phase 5 — Real adapters
 - [ ] Phase 6 — Deck
 - [ ] Phase 7 — E2E + perf

@@ -2,6 +2,7 @@
 import { createRequire } from 'node:module';
 import { Command } from 'commander';
 import qrcode from 'qrcode-terminal';
+import { startDemoFleet } from './adapters/simulator.js';
 import { loadConfig } from './config.js';
 import { logger, term } from './logger.js';
 import { DeviceStore } from './server/auth.js';
@@ -38,11 +39,24 @@ async function run(flags: RunFlags): Promise<void> {
     },
   });
 
-  printBanner(running, { noAuth, demo: flags.demo ?? false });
+  const demo = flags.demo ?? false;
+  const fleet = demo
+    ? startDemoFleet(running.hub, {
+        ...(process.env.AGENTDECK_SIM_SPEED === undefined
+          ? {}
+          : { speed: Number.parseFloat(process.env.AGENTDECK_SIM_SPEED) }),
+        ...(process.env.AGENTDECK_SIM_SEED === undefined
+          ? {}
+          : { seed: Number.parseInt(process.env.AGENTDECK_SIM_SEED, 10) }),
+      })
+    : undefined;
+
+  printBanner(running, { noAuth, demo });
 
   const shutdown = (): void => {
     term.line('');
     term.line('Stopping hub…');
+    fleet?.stop();
     void running.close().then(() => process.exit(0));
   };
   process.once('SIGINT', shutdown);

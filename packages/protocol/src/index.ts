@@ -1,1 +1,70 @@
-export const PROTOCOL_VERSION = 1;
+export { PROTOCOL_VERSION } from './version.js';
+export {
+  HarnessSchema,
+  SessionModeSchema,
+  SessionStatusSchema,
+  CapabilitySchema,
+  CurrentToolSchema,
+  SessionStatsSchema,
+  SessionSchema,
+  type Harness,
+  type SessionMode,
+  type SessionStatus,
+  type Capability,
+  type CurrentTool,
+  type SessionStats,
+  type Session,
+} from './session.js';
+export { ActionKindSchema, ActionSchema, type ActionKind, type Action } from './actions.js';
+export {
+  StatusEventSchema,
+  TranscriptEventSchema,
+  ToolEventSchema,
+  StatsEventSchema,
+  NoticeEventSchema,
+  SessionEventSchema,
+  type SessionEvent,
+  type StatusEvent,
+  type TranscriptEvent,
+  type ToolEvent,
+  type StatsEvent,
+  type NoticeEvent,
+} from './events.js';
+export {
+  PermissionResolutionSchema,
+  PermissionRequestSchema,
+  PermissionResolvedSchema,
+  type PermissionResolution,
+  type PermissionRequest,
+  type PermissionResolved,
+} from './permissions.js';
+export {
+  ErrorCodeSchema,
+  HelloPayloadSchema,
+  AckPayloadSchema,
+  ErrorPayloadSchema,
+  ServerMsgSchema,
+  SetEffortPayloadSchema,
+  ClientMsgSchema,
+  type ErrorCode,
+  type HelloPayload,
+  type AckPayload,
+  type ErrorPayload,
+  type ServerMsg,
+  type ServerMsgType,
+  type ServerPayload,
+  type SetEffortPayload,
+  type ClientMsg,
+  type ClientMsgType,
+  type ClientPayload,
+} from './messages.js';
+export {
+  serverMsg,
+  clientMsg,
+  encodeServerMsg,
+  encodeClientMsg,
+  decodeServerMsg,
+  decodeClientMsg,
+  type DecodeFailureReason,
+  type DecodeResult,
+} from './codec.js';

@@ -30,7 +30,7 @@ Small, dated records of choices the spec left open. One line of rationale each.
 
 - [x] Phase 0 — Recon
 - [x] Phase 1 — Scaffold
-- [ ] Phase 2 — Protocol
+- [x] Phase 2 — Protocol
 - [ ] Phase 3 — Hub core
 - [ ] Phase 4 — Simulator
 - [ ] Phase 5 — Real adapters

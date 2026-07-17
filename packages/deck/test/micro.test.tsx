@@ -152,7 +152,9 @@ describe('MicroDeck', () => {
     render(<MicroDeck />);
     const approve = screen.getByRole('button', { name: 'Approve' });
     expect(approve).toHaveProperty('disabled', true);
-    fireEvent.pointerDown(approve.parentElement!);
+    const wrapper = approve.parentElement;
+    if (!wrapper) throw new Error('command wrapper missing');
+    fireEvent.pointerDown(wrapper);
     expect(screen.getByText('nothing is waiting for approval')).toBeDefined();
   });
 
@@ -169,7 +171,8 @@ describe('MicroDeck', () => {
         );
     }
     const { container } = render(<MicroDeck />);
-    const plate = container.querySelector('.micro-plate')!;
+    const plate = container.querySelector('.micro-plate');
+    if (!plate) throw new Error('plate missing');
     // Start the swipe on a key — thumbs travel across keys, not bezels.
     fireEvent.pointerDown(screen.getByRole('button', { name: /agent 1/ }), {
       clientX: 300,

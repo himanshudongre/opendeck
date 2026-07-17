@@ -37,18 +37,18 @@ running hub from any terminal.
 OpenAI's Codex Micro sells two real things: ambient glanceable status and
 one-press tactile control. It's $230, it's six keys, and it only speaks Codex.
 
-|             | OpenDeck                                                                                                                                    | Codex Micro            |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| Price       | $0, MIT-licensed                                                                                                                            | $230, limited run      |
-| Agents      | Unlimited tiles                                                                                                                             | 6 RGB keys             |
-| Status      | Color + harness, repo/branch, elapsed, current tool, cost                                                                                   | Color                  |
-| Approvals   | The actual command or unified diff, one tap                                                                                                 | A blinking key         |
-| Harnesses   | Claude Code + Codex now; one adapter interface for more                                                                                     | Codex                  |
-| Controls    | Bindable action keys, dial with detents, jog pad, voice key                                                                                 | 13 keys, dial, stick   |
+|             | OpenDeck                                                                                                                                                                           | Codex Micro            |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| Price       | $0, MIT-licensed                                                                                                                                                                   | $230, limited run      |
+| Agents      | Unlimited tiles                                                                                                                                                                    | 6 RGB keys             |
+| Status      | Color + harness, repo/branch, elapsed, current tool, cost                                                                                                                          | Color                  |
+| Approvals   | The actual command or unified diff, one tap                                                                                                                                        | A blinking key         |
+| Harnesses   | Claude Code + Codex now; one adapter interface for more                                                                                                                            | Codex                  |
+| Controls    | Bindable action keys, dial with detents, jog pad, voice key                                                                                                                        | 13 keys, dial, stick   |
 | Device mode | **The default**: a real-time WebGL device — clearcoat keycaps over glowing LEDs, knurled reasoning knob (minimal→xhigh), sprung joystick, e-ink readout, bloom and studio lighting | The real thing (fair!) |
-| Feel        | Sprung key travel with overshoot, haptics, layered switch acoustics (clicky/thocky/silent) — or import a recording of your own favorite switch                                    | Real keycaps (fair!)   |
-| Where       | Any browser on your LAN, installable PWA, always-awake                                                                                      | Your desk              |
-| Cloud       | None. LAN only, no telemetry, no accounts                                                                                                   | —                      |
+| Feel        | Sprung key travel with overshoot, haptics, layered switch acoustics (clicky/thocky/silent) — or import a recording of your own favorite switch                                     | Real keycaps (fair!)   |
+| Where       | Any browser on your LAN, installable PWA, always-awake                                                                                                                             | Your desk              |
+| Cloud       | None. LAN only, no telemetry, no accounts                                                                                                                                          | —                      |
 
 <p align="center">
   <img src="docs/deck-graphite-phone.png" alt="Graphite theme on a phone: seven agent tiles with status glows over a dark slab, action keys, brass-needle dial and voice key" width="300" />

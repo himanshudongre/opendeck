@@ -201,6 +201,8 @@ Pair: single centered keycap panel — wordmark, one-line explanation, camera-le
 
 - **The flat product render is the default face** (2026-07-17, after direct user feedback with a reference sheet): perspective camera angles wasted screen and read as "eye candy"; the reference mock — dead straight-on, crisp, flat — is both more faithful to hardware product design and more usable. The CSS face was rebuilt to that language: frosted translucent caps (`backdrop-filter` blur) over `--glow` LED pools, circular outline command buttons, a dashed-outline joystick zone with a black knob, clean dial with a cut notch, mic pill, corner screws, ↑ north marker. Two builds switched by surface luminance: porcelain (light themes) and graphite (dark). Swipe-to-page works on the plate. `rendering` defaults to `classic`; the WebGL face stays one Settings tap away, and `usetest.mjs` pins `rendering: '3d'` since it exercises WebGL hit-testing.
 
+- **Discoverability and scale** (2026-07-17): a visible settings gear sits on the device plate (both faces) — long-press-only navigation was invisible to new users. The flat device auto-scales to fill its screen via a ResizeObserver fit (transform scale; offsetWidth ignores transforms, so measurement stays stable), and ≥760 px viewports get a third agent row — `useMicroModel(slots)` takes the per-page key count. Tablet screenshot added to docs.
+
 ## Phase log
 
 - [x] Phase 0 — Recon

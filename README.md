@@ -56,6 +56,10 @@ one-press tactile control. It's $230, it's six keys, and it only speaks Codex.
 </p>
 
 <p align="center">
+  <img src="docs/deck-micro-tablet.png" alt="Micro mode on an iPad: the porcelain device scaled up with a third agent row — ten frosted keys, knob, joystick, command circles and mic pill" width="620" />
+</p>
+
+<p align="center">
   <img src="docs/deck-graphite-phone.png" alt="Graphite theme on a phone: seven agent tiles with status glows over a dark slab, action keys, brass-needle dial and voice key" width="300" />
 </p>
 
@@ -151,9 +155,11 @@ one-time cert trust.
 The deck opens in **Micro mode**: the whole surface as one device, drawn
 flat and dead straight-on like a product sheet — frosted keys with each
 agent's LED glowing through, a reasoning knob, a dashed-outline joystick,
-circular command buttons, a push-to-talk pill. Swipe the plate to page
-through agents; long-press the faceplate to switch layouts (grid, tablet,
-desktop strip) or rebind anything:
+circular command buttons, a push-to-talk pill. The device scales to fill
+whatever screen it's on, and tablets gain a third agent row (ten keys per
+page). Swipe the plate to page through agents, tap the gear for settings,
+and long-press the faceplate to switch layouts (grid, tablet, desktop
+strip) or rebind anything:
 
 - **Command keys** are data: each cap is `{ icon, label, kind, args }` in
   layout JSON, with icons from a curated set (`packages/deck/src/state/icons.ts`).

@@ -37,7 +37,7 @@ export interface MicroModel {
   connection: ConnectionState;
 }
 
-export function useMicroModel(): MicroModel {
+export function useMicroModel(slots: number = KEYS_PER_PAGE): MicroModel {
   const sessions = useDeck((state) => state.sessions);
   const order = useDeck((state) => state.order);
   const permissions = useDeck((state) => state.permissions);
@@ -48,12 +48,9 @@ export function useMicroModel(): MicroModel {
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
 
   const list = order.flatMap((id) => (sessions[id] ? [sessions[id]] : []));
-  const pageCount = Math.max(1, Math.ceil(list.length / KEYS_PER_PAGE));
+  const pageCount = Math.max(1, Math.ceil(list.length / slots));
   const currentPage = Math.min(page, pageCount - 1);
-  const visible = list.slice(
-    currentPage * KEYS_PER_PAGE,
-    currentPage * KEYS_PER_PAGE + KEYS_PER_PAGE,
-  );
+  const visible = list.slice(currentPage * slots, currentPage * slots + slots);
 
   const attention =
     (selectedId !== undefined ? sessions[selectedId] : undefined) ??
@@ -108,7 +105,7 @@ export function useMicroModel(): MicroModel {
       } · ${attention.harness}`
     : '';
 
-  const keySlots = Array.from({ length: KEYS_PER_PAGE }, (_, index) => visible[index]);
+  const keySlots = Array.from({ length: slots }, (_, index) => visible[index]);
 
   return {
     attention,

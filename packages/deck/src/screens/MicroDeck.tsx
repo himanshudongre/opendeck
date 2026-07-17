@@ -1,7 +1,7 @@
 import type { Session } from '@opendeck/protocol';
-import { MessageCirclePlus, Mic } from 'lucide-react';
+import { MessageCirclePlus, Mic, Settings } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StatusDot, statusColorVar } from '../components/StatusDot.js';
 import { controller } from '../lib/controller.js';
 import { statusLabel } from '../lib/format.js';
@@ -38,6 +38,51 @@ function usePress(): { down: () => void; up: () => void } {
       playKeyUp(settings.sound);
     },
   };
+}
+
+/** Tablets get a third agent row: ten keys per page instead of six. */
+function useWideDeck(): boolean {
+  const [wide, setWide] = useState(
+    () => typeof matchMedia !== 'undefined' && matchMedia('(min-width: 760px)').matches,
+  );
+  useEffect(() => {
+    if (typeof matchMedia === 'undefined') return;
+    const query = matchMedia('(min-width: 760px)');
+    const onChange = (): void => setWide(query.matches);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, []);
+  return wide;
+}
+
+/**
+ * Scales the device to fill whatever screen it's on — edge-to-edge on a
+ * phone, genuinely big on an iPad — while the layout keeps one natural
+ * size. offsetWidth ignores transforms, so measurement stays stable.
+ */
+function useFitScale(
+  outer: React.RefObject<HTMLDivElement | null>,
+  device: React.RefObject<HTMLDivElement | null>,
+): number {
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    if (typeof ResizeObserver === 'undefined') return;
+    const measure = (): void => {
+      const box = outer.current;
+      const body = device.current;
+      if (!box || !body || body.offsetWidth === 0 || body.offsetHeight === 0) return;
+      const fit = Math.min(
+        box.clientWidth / body.offsetWidth,
+        (box.clientHeight - 8) / body.offsetHeight,
+      );
+      setScale(Math.max(0.8, Math.min(2.6, fit)));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(outer.current as Element);
+    return () => observer.disconnect();
+  }, [outer, device]);
+  return scale;
 }
 
 /** Porcelain build under light themes, graphite under dark ones. */
@@ -381,9 +426,14 @@ function MicBar({ targetId }: { targetId: string | undefined }) {
  */
 export function MicroDeck() {
   const setEditMode = useDeck((state) => state.setEditMode);
+  const setScreen = useDeck((state) => state.setScreen);
   const plateHold = useRef<number | undefined>(undefined);
   const swipe = useRef<{ x: number; y: number } | undefined>(undefined);
+  const outerRef = useRef<HTMLDivElement>(null);
+  const deviceRef = useRef<HTMLDivElement>(null);
   const light = useLightBuild();
+  const wide = useWideDeck();
+  const scale = useFitScale(outerRef, deviceRef);
   const {
     attention,
     pending,
@@ -400,11 +450,15 @@ export function MicroDeck() {
     lcdLine,
     lcdStats,
     connection,
-  } = useMicroModel();
+  } = useMicroModel(wide ? 10 : 6);
 
   return (
-    <div className="flex h-full items-center justify-center overflow-y-auto p-3">
-      <div className={`micro-body w-full max-w-sm p-2.5 ${light ? 'micro-light' : ''}`}>
+    <div ref={outerRef} className="flex h-full items-center justify-center overflow-hidden p-3">
+      <div
+        ref={deviceRef}
+        className={`micro-body w-full max-w-sm p-2.5 ${light ? 'micro-light' : ''}`}
+        style={{ transform: `scale(${scale})` }}
+      >
         <div
           className="micro-plate px-5 pb-4 pt-3"
           onContextMenu={(event) => {
@@ -465,6 +519,15 @@ export function MicroDeck() {
           >
             you can just ship things
           </p>
+
+          <button
+            type="button"
+            aria-label="Open settings"
+            className="absolute left-6 top-1 p-2"
+            onClick={() => setScreen('settings')}
+          >
+            <Settings aria-hidden size={14} style={{ color: 'var(--ink-3)' }} />
+          </button>
 
           {/* North marker, straight off the reference sheet. */}
           <p aria-hidden className="mb-1 text-center text-[13px] leading-none text-ink-3">

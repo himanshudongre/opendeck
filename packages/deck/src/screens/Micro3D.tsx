@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import type { Session } from '@opendeck/protocol';
+import { Settings as SettingsIcon } from 'lucide-react';
 import { controller } from '../lib/controller.js';
 import { hapticTick } from '../lib/haptics.js';
 import { playDetent, playKeyDown, playKeyUp } from '../lib/sound.js';
@@ -1032,11 +1033,20 @@ function A11yLayer({ model, knob }: { model: MicroModel; knob: KnobModel }) {
   );
 }
 
-/** The under-canvas footer: pages, knob readout, silkscreen. */
+/** The under-canvas footer: pages, knob readout, settings, silkscreen. */
 function Footer({ model, knobText }: { model: MicroModel; knobText: string }) {
   const { page, pageCount, setPage } = model;
+  const setScreen = useDeck((state) => state.setScreen);
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-1.5 z-10 flex flex-col items-center">
+      <button
+        type="button"
+        aria-label="Open settings"
+        className="pointer-events-auto absolute -top-1 right-3 p-2"
+        onClick={() => setScreen('settings')}
+      >
+        <SettingsIcon aria-hidden size={15} style={{ color: 'var(--ink-3)' }} />
+      </button>
       {pageCount > 1 && (
         <div className="pointer-events-auto flex items-center">
           {Array.from({ length: pageCount }, (_, index) => (

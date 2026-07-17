@@ -146,6 +146,34 @@ async function screenshots() {
     out('wrote docs/deck-micro-cream.png');
     await cream.close();
 
+    // Micro on a tablet: the device scales up and gains a third agent row.
+    const microTablet = await browser.newContext({
+      viewport: { width: 1180, height: 820 },
+      deviceScaleFactor: 2,
+      isMobile: true,
+      hasTouch: true,
+    });
+    await microTablet.addInitScript(() => {
+      localStorage.setItem(
+        'opendeck.settings',
+        JSON.stringify({
+          themeName: 'workshop',
+          sound: 'clicky',
+          haptics: true,
+          leftHand: false,
+          voiceLang: 'en-US',
+          rendering: 'classic',
+        }),
+      );
+    });
+    const microTabletPage = await microTablet.newPage();
+    await microTabletPage.goto(URL);
+    await microTabletPage.getByRole('slider').waitFor();
+    await microTabletPage.waitForTimeout(2500);
+    await microTabletPage.screenshot({ path: join(docsDir, 'deck-micro-tablet.png') });
+    out('wrote docs/deck-micro-tablet.png');
+    await microTablet.close();
+
     // Workshop, tablet: the cream slab homage.
     const tablet = await browser.newContext({
       viewport: { width: 1180, height: 820 },

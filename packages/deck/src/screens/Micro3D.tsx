@@ -28,11 +28,92 @@ import { useDeck } from '../state/store.js';
  * screen readers and tests see the same machine.
  */
 
-const CAP = '#1e2128';
-const PLATE = '#15171c';
-const BODY = '#101216';
 const KEY_TRAVEL = 0.16;
 const LONG_PRESS_MS = 450;
+
+/**
+ * The device's material palette, derived from the active theme. Workshop
+ * (light) renders the faithful cream hardware — warm plastic, silver
+ * knurled knob, RGB underglow bleeding from beneath the caps; dark themes
+ * keep the anodized graphite build.
+ */
+interface DevicePalette {
+  light: boolean;
+  body: string;
+  plate: string;
+  socket: string;
+  cap: string;
+  capDisabled: string;
+  legend: string;
+  knob: string;
+  stem: string;
+  ball: string;
+  lcdShell: string;
+}
+
+function cssToken(token: string, fallback: string): string {
+  if (typeof getComputedStyle === 'undefined') return fallback;
+  const raw = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+  return raw === '' ? fallback : raw;
+}
+
+function useDevicePalette(): DevicePalette {
+  const themeName = useDeck((state) => state.settings.themeName);
+  const customTheme = useDeck((state) => state.settings.customTheme);
+  return useMemo(() => {
+    const surface0 = cssToken('--surface-0', '#0e0f12');
+    const c = new THREE.Color(surface0);
+    const light = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b > 0.4;
+    if (light) {
+      return {
+        light: true,
+        body: cssToken('--surface-1', '#e2d9c4'),
+        plate: surface0,
+        socket: cssToken('--hairline', '#cfc5ae'),
+        cap: '#efe8d7',
+        capDisabled: '#ddd5c2',
+        legend: cssToken('--ink-3', '#7b7466'),
+        knob: '#c9c9ce',
+        stem: '#b6b6bc',
+        ball: '#2e2b27',
+        lcdShell: '#232019',
+      };
+    }
+    return {
+      light: false,
+      body: '#101216',
+      plate: '#15171c',
+      socket: '#101216',
+      cap: '#1e2128',
+      capDisabled: '#191b20',
+      legend: '#9aa1ad',
+      knob: '#262a32',
+      stem: '#22252c',
+      ball: '#2b2f38',
+      lcdShell: '#07080a',
+    };
+  }, [themeName, customTheme]);
+}
+
+/** Soft radial texture for the under-key light bleed. Drawn once. */
+let haloTexture: THREE.CanvasTexture | undefined;
+function getHaloTexture(): THREE.CanvasTexture {
+  if (haloTexture) return haloTexture;
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const gradient = ctx.createRadialGradient(64, 64, 22, 64, 64, 62);
+    gradient.addColorStop(0, 'rgba(255,255,255,0.95)');
+    gradient.addColorStop(0.55, 'rgba(255,255,255,0.4)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 128, 128);
+  }
+  haloTexture = new THREE.CanvasTexture(canvas);
+  return haloTexture;
+}
 
 /**
  * True while a finger is on a control (key, knob, stick). The page-swipe
@@ -138,6 +219,7 @@ const micGeometry = new RoundedBoxGeometry(4.2, 0.42, 1.02, 4, 0.14);
 interface PressableProps {
   position: [number, number, number];
   geometry: THREE.BufferGeometry;
+  palette: DevicePalette;
   disabled?: boolean;
   emissive?: THREE.Color;
   emissivePulse?: boolean;
@@ -155,6 +237,7 @@ interface PressableProps {
 function PressableKey({
   position,
   geometry,
+  palette,
   disabled = false,
   emissive,
   emissivePulse = false,
@@ -168,6 +251,7 @@ function PressableKey({
 }: PressableProps) {
   const group = useRef<THREE.Group>(null);
   const led = useRef<THREE.Mesh>(null);
+  const halo = useRef<THREE.Mesh>(null);
   const [pressed, setPressed] = useState(false);
   const longTimer = useRef<number | undefined>(undefined);
   const longFired = useRef(false);
@@ -187,10 +271,17 @@ function PressableKey({
     s.v += (-stiffness * (s.y - target) - damping * s.v) * dt;
     s.y += s.v * dt;
     group.current.position.y = s.y;
+    const pulse = emissivePulse ? 0.62 + Math.sin(state.clock.elapsedTime * 3.2) * 0.38 : 1;
     if (led.current && emissive) {
       const material = led.current.material as THREE.MeshStandardMaterial;
-      const pulse = emissivePulse ? 1.7 + Math.sin(state.clock.elapsedTime * 3.2) * 0.8 : 2.1;
-      material.emissiveIntensity = pulse;
+      material.emissiveIntensity = pulse * 2.1;
+    }
+    if (halo.current && emissive) {
+      // The Codex Micro signature: light spills out from under the cap onto
+      // the plate. Pressing the key squeezes the glow brighter.
+      const material = halo.current.material as THREE.MeshBasicMaterial;
+      const squeeze = pressed ? 1.25 : 1;
+      material.opacity = (palette.light ? 0.85 : 0.6) * pulse * squeeze;
     }
   });
 
@@ -234,24 +325,38 @@ function PressableKey({
       {/* Socket recess */}
       <mesh position={[0, -0.18, 0]} receiveShadow>
         <boxGeometry args={[1.78, 0.14, 1.78]} />
-        <meshStandardMaterial color={BODY} roughness={0.9} metalness={0.2} />
+        <meshStandardMaterial color={palette.socket} roughness={0.9} metalness={0.2} />
       </mesh>
+      {/* Underglow bleeding onto the plate around the cap */}
+      {emissive && (
+        <mesh ref={halo} position={[0, 0.045, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[2.5, 2.5]} />
+          <meshBasicMaterial
+            map={getHaloTexture()}
+            color={emissive}
+            transparent
+            depthWrite={false}
+            toneMapped={false}
+            blending={palette.light ? THREE.NormalBlending : THREE.AdditiveBlending}
+          />
+        </mesh>
+      )}
       <group ref={group}>
         <mesh geometry={geometry} castShadow receiveShadow>
           <meshPhysicalMaterial
-            color={disabled ? '#191b20' : CAP}
-            roughness={0.38}
-            metalness={0.12}
-            clearcoat={0.75}
-            clearcoatRoughness={0.22}
+            color={disabled ? palette.capDisabled : palette.cap}
+            roughness={palette.light ? 0.46 : 0.38}
+            metalness={palette.light ? 0.02 : 0.12}
+            clearcoat={palette.light ? 0.28 : 0.75}
+            clearcoatRoughness={palette.light ? 0.5 : 0.22}
             transparent={disabled}
             opacity={disabled ? 0.75 : 1}
             {...(outline ? { sheen: 0.4, sheenColor: outline } : {})}
           />
         </mesh>
         {emissive && (
-          <mesh ref={led} position={[0, 0.24, 0]}>
-            <sphereGeometry args={[0.13, 24, 24]} />
+          <mesh ref={led} position={[0, palette.light ? 0.22 : 0.24, 0]}>
+            <sphereGeometry args={[palette.light ? 0.1 : 0.13, 24, 24]} />
             <meshStandardMaterial
               color={emissive}
               emissive={emissive}
@@ -281,10 +386,12 @@ function PressableKey({
 function Knob({
   knob,
   position,
+  palette,
   feel,
 }: {
   knob: KnobModel;
   position: [number, number, number];
+  palette: DevicePalette;
   feel: { detent: () => void };
 }) {
   const { axis, valueIndex, knobDeg, setIndex } = knob;
@@ -335,22 +442,26 @@ function Knob({
     >
       <mesh position={[0, -0.14, 0]} receiveShadow>
         <cylinderGeometry args={[0.95, 0.98, 0.12, 48]} />
-        <meshStandardMaterial color={BODY} roughness={0.85} />
+        <meshStandardMaterial color={palette.socket} roughness={0.85} />
       </mesh>
       <group ref={spin}>
         <mesh castShadow>
           <cylinderGeometry args={[0.82, 0.86, 0.55, 64]} />
           <meshStandardMaterial
-            color="#262a32"
-            metalness={0.85}
-            roughness={0.4}
+            color={palette.knob}
+            metalness={palette.light ? 0.95 : 0.85}
+            roughness={palette.light ? 0.32 : 0.4}
             bumpMap={knurl}
-            bumpScale={0.6}
+            bumpScale={palette.light ? 0.35 : 0.6}
           />
         </mesh>
         <mesh position={[0, 0.28, 0]}>
           <cylinderGeometry args={[0.62, 0.62, 0.06, 48]} />
-          <meshStandardMaterial color="#1b1e24" metalness={0.6} roughness={0.5} />
+          <meshStandardMaterial
+            color={palette.light ? '#d4d4d8' : '#1b1e24'}
+            metalness={palette.light ? 0.9 : 0.6}
+            roughness={0.5}
+          />
         </mesh>
         {/* Brass indicator */}
         <mesh position={[0, 0.3, -0.62]}>
@@ -392,10 +503,12 @@ function Knob({
 function Stick({
   targetId,
   position,
+  palette,
   feel,
 }: {
   targetId: string | undefined;
   position: [number, number, number];
+  palette: DevicePalette;
   feel: { detent: () => void };
 }) {
   const { fire } = useJogFire(targetId);
@@ -451,17 +564,17 @@ function Stick({
     >
       <mesh position={[0, -0.12, 0]} receiveShadow>
         <cylinderGeometry args={[0.92, 0.95, 0.14, 48]} />
-        <meshStandardMaterial color={BODY} roughness={0.9} />
+        <meshStandardMaterial color={palette.socket} roughness={0.9} />
       </mesh>
       <group ref={tiltGroup}>
         <mesh position={[0, 0.2, 0]} castShadow>
           <cylinderGeometry args={[0.16, 0.22, 0.5, 24]} />
-          <meshStandardMaterial color="#22252c" metalness={0.7} roughness={0.35} />
+          <meshStandardMaterial color={palette.stem} metalness={0.7} roughness={0.35} />
         </mesh>
         <mesh position={[0, 0.56, 0]} castShadow>
           <sphereGeometry args={[0.42, 32, 32]} />
           <meshPhysicalMaterial
-            color="#2b2f38"
+            color={palette.ball}
             clearcoat={1}
             clearcoatRoughness={0.12}
             roughness={0.3}
@@ -494,11 +607,13 @@ function Lcd({
   line,
   stats,
   urgent,
+  shell,
   position,
 }: {
   line: string;
   stats: string;
   urgent: boolean;
+  shell: string;
   position: [number, number, number];
 }) {
   const canvas = useMemo(() => {
@@ -531,7 +646,7 @@ function Lcd({
     <group position={position}>
       <mesh receiveShadow>
         <boxGeometry args={[7.5, 0.18, 1.55]} />
-        <meshStandardMaterial color="#07080a" roughness={0.35} metalness={0.4} />
+        <meshStandardMaterial color={shell} roughness={0.35} metalness={0.4} />
       </mesh>
       <mesh position={[0, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[7.2, 1.22]} />
@@ -546,10 +661,12 @@ function DeviceScene({
   model,
   knob,
   voice,
+  palette,
 }: {
   model: MicroModel;
   knob: KnobModel;
   voice: ReturnType<typeof useVoiceBar>;
+  palette: DevicePalette;
 }) {
   const {
     attention,
@@ -578,14 +695,15 @@ function DeviceScene({
     const pmrem = new THREE.PMREMGenerator(gl);
     const env = pmrem.fromScene(new RoomEnvironment(), 0.04);
     scene.environment = env.texture;
-    // Studio reflections, not studio floodlight: keep the room dim so the
-    // anodized blacks stay black and the LEDs carry the scene.
-    scene.environmentIntensity = 0.45;
+    // Product lighting per build: the cream hardware wants a bright soft
+    // room like a studio tabletop shot; the graphite build stays dim so
+    // the anodized blacks stay black and the LEDs carry the scene.
+    scene.environmentIntensity = palette.light ? 0.5 : 0.45;
     return () => {
       env.texture.dispose();
       pmrem.dispose();
     };
-  }, [scene, gl]);
+  }, [scene, gl, palette.light]);
 
   useFrame((state, delta) => {
     if (!rig.current) return;
@@ -624,7 +742,7 @@ function DeviceScene({
     if (binding.accent === 'error') return `#${colors.error.getHexString()}`;
     if (binding.accent === 'waiting') return `#${colors.waiting_permission.getHexString()}`;
     if (binding.accent === 'working') return `#${colors.working.getHexString()}`;
-    return '#9aa1ad';
+    return palette.legend;
   };
 
   const agentKey = (slot: number, position: [number, number, number]): React.ReactElement => {
@@ -635,6 +753,7 @@ function DeviceScene({
         key={session?.id ?? `empty-${String(slot)}`}
         position={position}
         geometry={capGeometry}
+        palette={palette}
         disabled={session === undefined}
         {...(status !== undefined ? { emissive: colors[status] } : {})}
         emissivePulse={status === 'waiting_permission' || status === 'waiting_input'}
@@ -659,33 +778,49 @@ function DeviceScene({
       <pointLight
         position={[0, 0.4, 4.6]}
         color={attentionColor}
-        intensity={pending ? 6 : 2.5}
-        distance={7}
+        intensity={palette.light ? (pending ? 1 : 0.3) : pending ? 6 : 2.5}
+        distance={palette.light ? 5 : 7}
         decay={2}
       />
 
       {/* Body slab, depth-scaled with the row stretch */}
       <mesh position={[0, -0.32, 0]} scale={[1, 1, plateZ]} castShadow receiveShadow>
         <boxGeometry args={[8.6, 0.5, 11.2]} />
-        <meshStandardMaterial color={BODY} metalness={0.55} roughness={0.6} />
+        <meshPhysicalMaterial
+          color={palette.body}
+          metalness={palette.light ? 0.05 : 0.55}
+          roughness={palette.light ? 0.55 : 0.6}
+          clearcoat={palette.light ? 0.12 : 0}
+        />
       </mesh>
       <mesh position={[0, -0.05, 0]} scale={[1, 1, plateZ]} receiveShadow>
         <boxGeometry args={[8.2, 0.1, 10.8]} />
-        <meshStandardMaterial color={PLATE} metalness={0.7} roughness={0.5} />
+        <meshPhysicalMaterial
+          color={palette.plate}
+          metalness={palette.light ? 0.04 : 0.7}
+          roughness={palette.light ? 0.6 : 0.5}
+          clearcoat={palette.light ? 0.1 : 0}
+        />
       </mesh>
 
       <Lcd
         line={lcdLine}
         stats={lcdStats}
         urgent={pending !== undefined}
+        shell={palette.lcdShell}
         position={[0, 0.1, -3.78 * rz]}
       />
 
       {/* Row A: knob · two agent keys · stick */}
-      <Knob knob={knob} position={[-2.9, 0.15, -2 * rz]} feel={feel} />
+      <Knob knob={knob} position={[-2.9, 0.15, -2 * rz]} palette={palette} feel={feel} />
       {agentKey(0, [-0.95, 0.15, -2 * rz])}
       {agentKey(1, [0.95, 0.15, -2 * rz])}
-      <Stick targetId={attention?.id} position={[2.9, 0.15, -2 * rz]} feel={feel} />
+      <Stick
+        targetId={attention?.id}
+        position={[2.9, 0.15, -2 * rz]}
+        palette={palette}
+        feel={feel}
+      />
 
       {/* Row B: four agent keys */}
       {agentKey(2, [-2.9, 0.15, -0.1 * rz])}
@@ -699,6 +834,7 @@ function DeviceScene({
           key={binding.id}
           position={[-2.9 + index * 1.94, 0.12, 1.7 * rz]}
           geometry={wideCapGeometry}
+          palette={palette}
           disabled={!bindingArmed(binding)}
           glyphTexture={glyphTextures(binding.icon, accentCss(binding))}
           onDown={feel.down}
@@ -709,8 +845,9 @@ function DeviceScene({
       <PressableKey
         position={[2.92, 0.12, 1.7 * rz]}
         geometry={wideCapGeometry}
+        palette={palette}
         disabled={attention === undefined}
-        glyphTexture={glyphTextures('arrow-up-right', '#9aa1ad')}
+        glyphTexture={glyphTextures('arrow-up-right', palette.legend)}
         onDown={feel.down}
         onUp={feel.up}
         onPress={() => {
@@ -722,6 +859,7 @@ function DeviceScene({
       <PressableKey
         position={[-0.9, 0.12, 3.25 * rz]}
         geometry={micGeometry}
+        palette={palette}
         disabled={!voice.available}
         {...(voice.listening ? { emissive: colors.waiting_permission, emissivePulse: true } : {})}
         onDown={() => {
@@ -736,16 +874,21 @@ function DeviceScene({
       <PressableKey
         position={[2.92, 0.12, 3.25 * rz]}
         geometry={wideCapGeometry}
-        glyphTexture={glyphTextures('message-plus', '#9aa1ad')}
+        palette={palette}
+        glyphTexture={glyphTextures('message-plus', palette.legend)}
         onDown={feel.down}
         onUp={feel.up}
         onPress={() => controller.action({ kind: 'new_session', args: { harness: 'claude' } })}
       />
 
       {/* Lighting rig */}
-      <ambientLight intensity={0.25} />
-      <SunLight />
-      <directionalLight position={[-6, 5, -4]} intensity={0.35} color="#8fa3c8" />
+      <ambientLight intensity={palette.light ? 0.3 : 0.25} />
+      <SunLight light={palette.light} />
+      <directionalLight
+        position={[-6, 5, -4]}
+        intensity={palette.light ? 0.22 : 0.35}
+        color={palette.light ? '#ffe9cf' : '#8fa3c8'}
+      />
     </group>
   );
 }
@@ -790,7 +933,7 @@ function FrameCamera() {
 }
 
 /** Key light with a hand-tuned shadow frustum (dashed props don't typecheck). */
-function SunLight() {
+function SunLight({ light: lightBuild }: { light: boolean }) {
   const light = useRef<THREE.DirectionalLight>(null);
   useEffect(() => {
     const sun = light.current;
@@ -805,7 +948,15 @@ function SunLight() {
     cam.bottom = -8;
     cam.updateProjectionMatrix();
   }, []);
-  return <directionalLight ref={light} position={[4, 9, 3]} intensity={2.1} castShadow />;
+  return (
+    <directionalLight
+      ref={light}
+      position={[4, 9, 3]}
+      intensity={lightBuild ? 1.05 : 2.1}
+      color={lightBuild ? '#fff3e2' : '#ffffff'}
+      castShadow
+    />
+  );
 }
 
 /** Visually-hidden mirror of every control for screen readers and tests. */
@@ -921,6 +1072,7 @@ export default function Micro3D() {
   const model = useMicroModel();
   const knob = useKnobModel(model.attention);
   const voice = useVoiceBar(model.attention?.id);
+  const palette = useDevicePalette();
   const wrapper = useRef<HTMLDivElement>(null);
   const holdTimer = useRef<number | undefined>(undefined);
   const modelRef = useRef(model);
@@ -992,13 +1144,18 @@ export default function Micro3D() {
         aria-label="OpenDeck micro device"
       >
         <FrameCamera />
-        <DeviceScene model={model} knob={knob} voice={voice} />
+        <DeviceScene model={model} knob={knob} voice={voice} palette={palette} />
         {/* The glow is the product: LEDs, LCD, and deskglow all bloom for
             real instead of faking it with sprites. Multisampling off — the
             bloom pass smooths edges enough, and mobile GPUs feel the MSAA. */}
         <EffectComposer multisampling={0}>
-          <Bloom mipmapBlur luminanceThreshold={0.55} intensity={0.85} radius={0.72} />
-          <Vignette eskil={false} offset={0.14} darkness={0.6} />
+          <Bloom
+            mipmapBlur
+            luminanceThreshold={palette.light ? 0.99 : 0.55}
+            intensity={palette.light ? 0.4 : 0.85}
+            radius={0.72}
+          />
+          <Vignette eskil={false} offset={0.14} darkness={palette.light ? 0.32 : 0.6} />
         </EffectComposer>
       </Canvas>
       <A11yLayer model={model} knob={knob} />

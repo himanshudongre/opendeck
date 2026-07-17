@@ -118,6 +118,34 @@ async function screenshots() {
     out('wrote docs/deck-micro.png');
     await micro.close();
 
+    // Micro in Workshop: the cream hardware homage.
+    const cream = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 2,
+      isMobile: true,
+      hasTouch: true,
+    });
+    await cream.addInitScript(() => {
+      localStorage.setItem(
+        'opendeck.settings',
+        JSON.stringify({
+          themeName: 'workshop',
+          sound: 'clicky',
+          haptics: true,
+          leftHand: false,
+          voiceLang: 'en-US',
+          rendering: '3d',
+        }),
+      );
+    });
+    const creamPage = await cream.newPage();
+    await creamPage.goto(URL);
+    await creamPage.getByRole('slider').waitFor();
+    await creamPage.waitForTimeout(4000);
+    await creamPage.screenshot({ path: join(docsDir, 'deck-micro-cream.png') });
+    out('wrote docs/deck-micro-cream.png');
+    await cream.close();
+
     // Workshop, tablet: the cream slab homage.
     const tablet = await browser.newContext({
       viewport: { width: 1180, height: 820 },

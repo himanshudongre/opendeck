@@ -51,8 +51,12 @@ one-press tactile control. It's $230, it's six keys, and it only speaks Codex.
 | Cloud       | None. LAN only, no telemetry, no accounts                                                                                                                                          | —                      |
 
 <p align="center">
+  <img src="docs/deck-micro.png" alt="Micro mode in graphite: the WebGL device with RGB underglow pooling beneath each agent key, knurled knob, joystick, command caps and a live readout strip" width="300" />
+  <img src="docs/deck-micro-cream.png" alt="Micro mode in the Workshop theme: the cream hardware homage — warm plastic caps with RGB light bleeding from underneath, silver knurled knob, dark glass display" width="300" />
+</p>
+
+<p align="center">
   <img src="docs/deck-graphite-phone.png" alt="Graphite theme on a phone: seven agent tiles with status glows over a dark slab, action keys, brass-needle dial and voice key" width="300" />
-  <img src="docs/deck-micro.png" alt="Micro mode: the deck rendered as one physical device — knurled reasoning knob, six LED agent keys, joystick, command keys, mic bar and an e-ink readout strip" width="300" />
 </p>
 
 <p align="center">
@@ -155,8 +159,12 @@ anything:
   layout JSON, with icons from a curated set (`packages/deck/src/state/icons.ts`).
 - **Joystick workflows** are prompt templates per flick direction — swap
   "review the diff" for whatever your team actually repeats.
-- **Themes** are token JSON with a live editor; **layouts** copy/paste as
-  JSON from Settings, so a good configuration is a gist away.
+- **Themes** restyle the hardware itself: the 3D device derives its
+  materials from the active theme — Workshop renders the cream build (warm
+  plastic, silver knurled knob, RGB underglow bleeding from beneath the
+  caps), graphite and void keep the anodized black build. Themes are token
+  JSON with a live editor; **layouts** copy/paste as JSON from Settings, so
+  a good configuration is a gist away.
 - **Switch sounds** are synthesized in WebAudio (clicky, thocky, silent —
   every strike slightly detuned so rolls never sound looped), and
   `custom` lets you import a recording of your own favorite switch: press

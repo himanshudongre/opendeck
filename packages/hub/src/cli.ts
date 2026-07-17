@@ -32,17 +32,32 @@ async function run(flags: RunFlags): Promise<void> {
   // Tokens are one-time (SPEC §8): after each pairing, print a fresh QR so
   // the next device (the iPad after the phone) scans without a restart.
   let reissue: (() => void) | undefined;
-  const running = await startHub({
-    config: configResult.config,
-    version: pkg.version,
-    ...(flags.port === undefined ? {} : { port: Number.parseInt(flags.port, 10) }),
-    ...(flags.localhostOnly === undefined ? {} : { localhostOnly: flags.localhostOnly }),
-    noAuth,
-    onPaired: (name) => {
-      term.line(`📱 ${name} paired`);
-      reissue?.();
-    },
-  });
+  let running: RunningHub;
+  const requestedPort =
+    flags.port === undefined ? configResult.config.port : Number.parseInt(flags.port, 10);
+  try {
+    running = await startHub({
+      config: configResult.config,
+      version: pkg.version,
+      ...(flags.port === undefined ? {} : { port: Number.parseInt(flags.port, 10) }),
+      ...(flags.localhostOnly === undefined ? {} : { localhostOnly: flags.localhostOnly }),
+      noAuth,
+      onPaired: (name) => {
+        term.line(`📱 ${name} paired`);
+        reissue?.();
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'EADDRINUSE') {
+      term.error(
+        `Port ${requestedPort} is already in use — another hub may be running. Stop it, or start this one with --port <n>.`,
+      );
+    } else {
+      term.error(error instanceof Error ? error.message : 'The hub failed to start.');
+    }
+    process.exitCode = 1;
+    return;
+  }
 
   const demo = flags.demo ?? false;
   const fleet = demo

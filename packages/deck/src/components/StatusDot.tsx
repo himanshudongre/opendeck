@@ -25,16 +25,26 @@ export function statusPulseClass(status: SessionStatus): string {
   return '';
 }
 
+/**
+ * An LED under frosted plastic, not a flat circle: a white-hot core inside
+ * the status color with a tight halo and a wide soft bloom.
+ */
 export function StatusDot({ status, size = 10 }: { status: SessionStatus; size?: number }) {
+  const color = statusColorVar(status);
+  const lit = status !== 'idle' && status !== 'disconnected';
   return (
     <span
       aria-hidden
-      className={`inline-block rounded-full ${statusPulseClass(status)}`}
+      className={`status-fade inline-block rounded-full ${statusPulseClass(status)}`}
       style={{
         width: size,
         height: size,
-        background: statusColorVar(status),
-        boxShadow: `0 0 ${String(size)}px ${statusColorVar(status)}`,
+        background: lit
+          ? `radial-gradient(circle at 38% 34%, rgb(255 255 255 / 0.9), ${color} 58%)`
+          : color,
+        boxShadow: lit
+          ? `0 0 ${String(size * 0.6)}px ${color}, 0 0 ${String(size * 2.2)}px ${color}`
+          : 'inset 0 1px 2px rgb(0 0 0 / 0.4)',
       }}
     />
   );

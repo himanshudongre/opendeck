@@ -64,8 +64,11 @@ export function ActionKey({ binding }: { binding: ActionKeyBinding }) {
       <span className="flex h-full flex-col items-center justify-center gap-0.5">
         <span
           aria-hidden
-          className="h-1 w-4 rounded-full"
-          style={{ background: accent ?? 'var(--hairline)' }}
+          className="status-fade h-1 w-4 rounded-full"
+          style={{
+            background: accent ?? 'var(--hairline)',
+            boxShadow: accent !== undefined && !disabled ? `0 0 7px ${accent}` : 'none',
+          }}
         />
         <span className="font-display text-[11px] leading-tight text-ink-1">
           {armed ? 'Confirm?' : binding.label}

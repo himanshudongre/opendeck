@@ -1,4 +1,5 @@
 import type { Session } from '@agentdeck/protocol';
+import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { Keycap } from '../components/Keycap.js';
 import { StatusDot, statusColorVar } from '../components/StatusDot.js';
@@ -35,9 +36,20 @@ export function AgentTile({ session, size }: { session: Session; size: TileSize 
   const elapsed = useElapsed(session);
   const color = statusColorVar(session.status);
   const waiting = session.status === 'waiting_input' || session.status === 'waiting_permission';
+  const reduced = useReducedMotion() ?? false;
 
   return (
-    <div className="relative">
+    <motion.div
+      className="relative"
+      layout={!reduced}
+      {...(reduced
+        ? {}
+        : {
+            initial: { opacity: 0, y: 16, scale: 0.95 },
+            animate: { opacity: 1, y: 0, scale: 1 },
+            transition: { type: 'spring', duration: 0.5, bounce: 0.22 },
+          })}
+    >
       <Keycap
         glow={color}
         className={`w-full text-left ${size === 'S' ? 'p-2.5' : 'p-3.5'}`}
@@ -78,7 +90,7 @@ export function AgentTile({ session, size }: { session: Session; size: TileSize 
         )}
 
         <p
-          className={`mt-1.5 truncate text-[11px] ${waiting ? 'pulse-waiting' : ''}`}
+          className={`status-fade mt-1.5 truncate text-[11px] ${waiting ? 'pulse-waiting' : ''}`}
           style={{ color: waiting ? color : 'var(--ink-2)' }}
         >
           {waiting ||
@@ -103,7 +115,7 @@ export function AgentTile({ session, size }: { session: Session; size: TileSize 
             style={{ background: 'var(--hairline)' }}
           >
             <span
-              className="block h-full rounded-full"
+              className="status-fade block h-full rounded-full"
               style={{
                 width: `${String(Math.min(100, ((session.stats.costUsd ?? session.stats.outputTokens / 100_000) / 0.5) * 100))}%`,
                 background: color,
@@ -133,6 +145,6 @@ export function AgentTile({ session, size }: { session: Session; size: TileSize 
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

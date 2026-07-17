@@ -29,6 +29,9 @@ async function run(flags: RunFlags): Promise<void> {
     term.line('⚠ Running with --no-auth: anyone on this network can control your agents.');
   }
 
+  // Tokens are one-time (SPEC §8): after each pairing, print a fresh QR so
+  // the next device (the iPad after the phone) scans without a restart.
+  let reissue: (() => void) | undefined;
   const running = await startHub({
     config: configResult.config,
     version: pkg.version,
@@ -37,6 +40,7 @@ async function run(flags: RunFlags): Promise<void> {
     noAuth,
     onPaired: (name) => {
       term.line(`📱 ${name} paired`);
+      reissue?.();
     },
   });
 
@@ -58,6 +62,19 @@ async function run(flags: RunFlags): Promise<void> {
     demo,
     harnessNotes: detections.flatMap((d) => (d.note === undefined ? [] : [d.note])),
   });
+  if (!noAuth) {
+    reissue = () => {
+      printPairingQr(running, 'Next device: scan this fresh code.');
+    };
+    // Tokens expire after ten minutes; keep a scannable code on screen.
+    const refresh = setInterval(
+      () => {
+        printPairingQr(running, 'The previous code expired. This one is fresh.');
+      },
+      9 * 60 * 1000,
+    );
+    refresh.unref();
+  }
 
   const shutdown = (): void => {
     term.line('');
@@ -96,15 +113,20 @@ function printBanner(
     return;
   }
 
+  printPairingQr(running, 'Scan with your phone to pair. The code is valid for 10 minutes;');
+  logger().info({ port: running.port, host: running.host }, 'hub started');
+}
+
+function printPairingQr(running: RunningHub, lead: string): void {
+  const primaryUrl = running.lanUrls[0] ?? `http://localhost:${running.port}`;
   const token = running.pairing.issueToken();
   const pairUrl = `${primaryUrl}/#pair=${token}`;
   qrcode.generate(pairUrl, { small: true }, (qr) => {
     for (const line of qr.split('\n')) term.line(`  ${line}`);
   });
-  term.line('  Scan with your phone to pair. The code is valid for 10 minutes;');
+  term.line(`  ${lead}`);
   term.line(`  or open ${pairUrl}`);
   term.line('');
-  logger().info({ port: running.port, host: running.host }, 'hub started');
 }
 
 function devicesList(): void {

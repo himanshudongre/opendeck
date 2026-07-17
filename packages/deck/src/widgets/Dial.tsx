@@ -1,4 +1,5 @@
 import type { Session, SetEffortPayload } from '@agentdeck/protocol';
+import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { controller } from '../lib/controller.js';
 import { createCoalescer } from '../lib/coalescer.js';
@@ -94,6 +95,7 @@ export function Dial() {
 
   const dialRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
+  const reduced = useReducedMotion() ?? false;
 
   if (!target || !axis) {
     return (
@@ -165,33 +167,54 @@ export function Dial() {
             setIndex(valueIndex - 1, true);
         }}
       >
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-full"
+          style={{
+            background:
+              'repeating-conic-gradient(from 0deg, transparent 0deg 8deg, rgb(255 255 255 / 0.035) 8deg 10deg)',
+          }}
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-2.5 rounded-full"
+          style={{
+            boxShadow: 'inset 0 2px 5px rgb(0 0 0 / 0.45), inset 0 -1px 0 rgb(255 255 255 / 0.05)',
+          }}
+        />
         {axis.values.map((value, index) => {
           const deg =
             START_DEG +
             (axis.values.length === 1
               ? SWEEP_DEG / 2
               : (index / (axis.values.length - 1)) * SWEEP_DEG);
+          const active = index === valueIndex;
           return (
             <span
               key={value}
               aria-hidden
-              className="absolute left-1/2 top-1/2 h-1 w-1 rounded-full"
+              className="status-fade absolute left-1/2 top-1/2 h-1 w-1 rounded-full"
               style={{
-                background: index === valueIndex ? 'var(--brass)' : 'var(--hairline)',
+                background: active ? 'var(--brass)' : 'var(--hairline)',
+                boxShadow: active ? '0 0 6px var(--brass)' : 'none',
                 transform: `rotate(${String(deg)}deg) translateY(-42px)`,
                 transformOrigin: '0 0',
               }}
             />
           );
         })}
-        <span
+        <motion.span
           aria-hidden
-          className="absolute left-1/2 top-1/2 h-8 w-0.5 rounded-full transition-transform duration-100"
+          className="absolute left-1/2 top-1/2 h-8 w-0.5 rounded-full"
           style={{
-            background: 'var(--brass)',
-            transform: `translate(-50%, -100%) rotate(${String(needleDeg)}deg)`,
+            background: 'linear-gradient(180deg, var(--brass), rgb(0 0 0 / 0) 130%)',
+            boxShadow: '0 0 5px rgb(216 179 106 / 0.55)',
+            x: '-50%',
+            y: '-100%',
             transformOrigin: '50% 100%',
           }}
+          animate={{ rotate: needleDeg }}
+          transition={reduced ? { duration: 0 } : { type: 'spring', stiffness: 320, damping: 22 }}
         />
         <span className="font-data absolute inset-x-0 bottom-4 text-center text-[10px] text-ink-1">
           {axis.values[valueIndex]}

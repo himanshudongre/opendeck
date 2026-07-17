@@ -19,9 +19,13 @@ export default defineConfig({
   use: {
     trace: 'retain-on-failure',
   },
+  // deck.spec runs on every viewport; suites that consume one-shot demo
+  // state (a pairing token, a permission approval, the network) are pinned
+  // to exactly one project via testMatch — never skipped, just not doubled.
   projects: [
     {
       name: 'iphone-14',
+      testMatch: ['**/deck.spec.ts', '**/approve.spec.ts'],
       use: {
         ...devices['iPhone 14'],
         browserName: 'chromium',
@@ -30,6 +34,7 @@ export default defineConfig({
     },
     {
       name: 'ipad',
+      testMatch: ['**/deck.spec.ts', '**/pairing.spec.ts'],
       use: {
         ...devices['iPad (gen 11)'],
         browserName: 'chromium',
@@ -38,6 +43,7 @@ export default defineConfig({
     },
     {
       name: 'desktop',
+      testMatch: ['**/deck.spec.ts', '**/reconnect.spec.ts'],
       use: { ...devices['Desktop Chrome'] },
     },
   ],

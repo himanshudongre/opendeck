@@ -170,6 +170,15 @@ Pair: single centered keycap panel — wordmark, one-line explanation, camera-le
 - `npm pack` verification: tarball installed into a temp project; `agentdeck --version`, `--demo` boot, `/api/health`, deck HTML, and a 7-session snapshot all confirmed against the packed artifact.
 - Initial changeset is a major on `agentdeck` (0.0.0 → 1.0.0); private workspaces are excluded from versioning by the changesets `privatePackages` config.
 
+## Adversarial self-review (Phase 9)
+
+- Removed the E2E `test.skip` project guards: per-project `testMatch` pins one-shot suites (pairing token, approvals, network kill) to exactly one viewport, so the run reports 0 skipped instead of 8 — the DoD reads "zero skipped tests" literally and now so does the reporter.
+- Lighthouse (v13, system Chrome): accessibility **1.00 on Grid and 1.00 on Focus**. Three real fixes fell out: `--ink-3` brightened to `#858B97` (was 2.62:1 on keycaps), removed `user-scalable=no` (pinch-zoom is an a11y right, kiosk feel notwithstanding), and content-rich Agent Tiles now name themselves instead of carrying a narrower aria-label (axe `label-content-name-mismatch`). Focus gained its `<main>` landmark.
+- Lighthouse 13 dropped the PWA category, so installability is evidenced directly: `manifest.webmanifest` (fullscreen display, 192/512 + maskable icons) and `sw.js` precache both served by the hub.
+- `#focus=<sessionId>` deep link added so Focus is auditable by navigation — and bookmarkable, which the deck wanted anyway.
+- Workshop's slab-level ink contrast is a known trade (light slab + dark keys want two ink ramps); the audit gate applies to the default theme, and the token editor lets users push it further. Recorded rather than hidden.
+- Full matrix re-run from a wiped node_modules: build, lint, typecheck, 280 unit tests, 19/19 E2E (0 skipped), latency p95 0.14 ms, bundle 120.8 KB gz. Banned-pattern greps (TODO/FIXME/HACK, console.*, placeholder copy, eslint-disable, @ts-ignore, `any`, .only/.skip/.todo) all clean.
+
 ## Phase log
 
 - [x] Phase 0 — Recon
@@ -181,4 +190,4 @@ Pair: single centered keycap panel — wordmark, one-line explanation, camera-le
 - [x] Phase 6 — Deck
 - [x] Phase 7 — E2E + perf
 - [x] Phase 8 — Docs & release
-- [ ] Phase 9 — Adversarial self-review
+- [x] Phase 9 — Adversarial self-review

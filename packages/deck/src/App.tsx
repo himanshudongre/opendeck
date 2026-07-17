@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { DeskglowEdges } from './components/Deskglow.js';
 import { controller } from './lib/controller.js';
 import { acquireWakeLock, type WakeLockHandle } from './lib/wakelock.js';
@@ -13,11 +13,24 @@ import { ThemeEditorScreen } from './screens/ThemeEditorScreen.js';
 export function App() {
   const screen = useDeck((state) => state.screen);
   const connection = useDeck((state) => state.connection);
+  const sessions = useDeck((state) => state.sessions);
 
   useEffect(() => {
     applyTheme(activeTheme(useDeck.getState().settings));
     void controller.init();
   }, []);
+
+  // `#focus=<sessionId>` deep-links straight into a session once it exists.
+  const focusTarget = useRef(/#focus=([\w-]+)/.exec(window.location.hash)?.[1]);
+  useEffect(() => {
+    const target = focusTarget.current;
+    if (target !== undefined && sessions[target] !== undefined) {
+      focusTarget.current = undefined;
+      history.replaceState(null, '', window.location.pathname);
+      useDeck.getState().focusSession(target);
+      controller.subscribe(target);
+    }
+  }, [sessions]);
 
   // A peripheral never sleeps: re-acquire on visibility changes (SPEC §6).
   useEffect(() => {

@@ -63,7 +63,7 @@ export function VoiceKey() {
           inert
             ? 'Voice is unavailable on this connection. Enable voice in Settings.'
             : listening
-              ? 'Release to send'
+              ? 'Listening — release to send'
               : 'Hold to talk'
         }
         className={`keycap flex h-24 w-16 touch-none flex-col items-center justify-center gap-1.5 ${inert ? 'opacity-50' : ''}`}
@@ -82,7 +82,7 @@ export function VoiceKey() {
           />
         )}
         <span className="font-data text-[8px] uppercase tracking-wide text-ink-3">
-          {listening ? 'listening' : 'voice'}
+          {listening ? 'listening' : 'hold to talk'}
         </span>
       </button>
 

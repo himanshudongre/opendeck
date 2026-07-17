@@ -8,7 +8,8 @@ interface KeycapProps {
   children: ReactNode;
   onPress?: () => void;
   onLongPress?: () => void;
-  label: string;
+  /** Accessible name; omit when the cap's visible content names it. */
+  label?: string;
   disabled?: boolean;
   className?: string;
   /** Glow color painted behind the cap while pressed. */
@@ -52,7 +53,7 @@ export function Keycap({
   return (
     <motion.button
       type="button"
-      aria-label={label}
+      {...(label === undefined ? {} : { 'aria-label': label })}
       disabled={disabled}
       className={`keycap relative touch-none select-none ${disabled ? 'opacity-40' : ''} ${className}`}
       {...(reduced || disabled ? {} : { whileTap: { y: 1, scale: 0.97 } })}

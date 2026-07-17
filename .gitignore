@@ -9,3 +9,4 @@ test-results/
 .env
 .env.*
 packages/deck/public/icon-*.png
+e2e/.state/

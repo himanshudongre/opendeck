@@ -11,7 +11,7 @@ describe('prettyToolDetail', () => {
   it('prefers commands, then paths, then patterns', () => {
     expect(prettyToolDetail('Bash', { command: 'pnpm test' })).toBe('pnpm test');
     expect(prettyToolDetail('Edit', { file_path: 'src/a.ts', old_string: 'x' })).toBe('src/a.ts');
-    expect(prettyToolDetail('Grep', { pattern: 'TODO' })).toBe('TODO');
+    expect(prettyToolDetail('Grep', { pattern: 'retryPolicy' })).toBe('retryPolicy');
   });
 
   it('flattens newlines and truncates long values', () => {

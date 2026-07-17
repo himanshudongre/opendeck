@@ -8,7 +8,6 @@ import { deckState, hubSnapshot, hubs } from '../helpers.js';
  */
 test.describe('reconnect', () => {
   test('a dropped socket resumes with zero missed events', async ({ page, context }) => {
-    test.skip(test.info().project.name !== 'desktop', 'exercises shared network state once');
     const { openUrl } = hubs();
     await page.goto(openUrl);
     await expect(page.getByRole('status', { name: /Connection:/ })).toHaveAttribute(

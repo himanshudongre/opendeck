@@ -50,6 +50,10 @@ async function waitForTile(page, name, timeout = 30_000) {
   await page.getByRole('button', { name }).first().waitFor({ timeout });
 }
 
+async function waitForTileText(page, name, text, timeout = 30_000) {
+  await page.getByRole('button', { name }).filter({ hasText: text }).first().waitFor({ timeout });
+}
+
 async function screenshots() {
   const hub = startHub(6);
   await waitForHealth();
@@ -64,13 +68,13 @@ async function screenshots() {
     });
     const phonePage = await phone.newPage();
     await phonePage.goto(URL);
-    await waitForTile(phonePage, /fix flaky auth test — needs approval/);
-    await waitForTile(phonePage, /tune retrieval evals — error/);
+    await waitForTileText(phonePage, /fix flaky auth test/, 'needs approval');
+    await waitForTileText(phonePage, /tune retrieval evals/, 'error');
     await phonePage.screenshot({ path: join(docsDir, 'deck-graphite-phone.png') });
     out('wrote docs/deck-graphite-phone.png');
 
     // Focus + permission card: the hero flow.
-    await phonePage.getByRole('button', { name: /speed up invoice list — needs approval/ }).click();
+    await phonePage.getByRole('button', { name: /speed up invoice list/ }).click();
     await phonePage.getByText('Bash wants to run').waitFor();
     await phonePage.screenshot({ path: join(docsDir, 'deck-focus-permission.png') });
     out('wrote docs/deck-focus-permission.png');
@@ -144,9 +148,9 @@ async function demoGif() {
     await page.goto(URL);
 
     // Watch the fleet come alive, approve the hero permission, return.
-    await waitForTile(page, /fix flaky auth test — needs approval/, 40_000);
+    await waitForTileText(page, /fix flaky auth test/, 'needs approval', 40_000);
     await page.waitForTimeout(1500);
-    await page.getByRole('button', { name: /fix flaky auth test — needs approval/ }).click();
+    await page.getByRole('button', { name: /fix flaky auth test/ }).click();
     await page.getByText('Edit wants to run').waitFor();
     await page.waitForTimeout(2200);
     await page.getByRole('button', { name: 'Approve Edit' }).click();

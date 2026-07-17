@@ -7,12 +7,10 @@ import { hubs } from '../helpers.js';
  */
 test.describe('approve round-trip', () => {
   test('a deck tap resolves the permission and the scenario continues', async ({ page }) => {
-    test.skip(test.info().project.name !== 'iphone-14', 'consumes one-shot demo state');
     await page.goto(hubs().openUrl);
 
-    const invoiceTile = page.getByRole('button', {
-      name: 'speed up invoice list — needs approval',
-    });
+    const invoiceTile = page.getByRole('button', { name: /speed up invoice list/ });
+    await expect(invoiceTile).toContainText('needs approval');
     await invoiceTile.click();
 
     // The card shows the actual migration diff, not a blind prompt.

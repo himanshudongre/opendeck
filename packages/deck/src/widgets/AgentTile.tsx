@@ -39,7 +39,6 @@ export function AgentTile({ session, size }: { session: Session; size: TileSize 
   return (
     <div className="relative">
       <Keycap
-        label={`${session.title} — ${statusLabel(session.status)}`}
         glow={color}
         className={`w-full text-left ${size === 'S' ? 'p-2.5' : 'p-3.5'}`}
         onPress={() => {

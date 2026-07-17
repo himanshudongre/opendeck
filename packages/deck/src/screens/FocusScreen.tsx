@@ -79,7 +79,7 @@ export function FocusScreen() {
         </div>
       </header>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-3 py-3">
+      <main ref={scrollRef} className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-3 py-3">
         {(transcript ?? []).length === 0 && pending.length === 0 && (
           <p className="font-data pt-8 text-center text-[11px] text-ink-3">
             {session.capabilities.includes('transcript')
@@ -115,7 +115,7 @@ export function FocusScreen() {
         {pending.map((request) => (
           <PermissionCard key={request.id} request={request} />
         ))}
-      </div>
+      </main>
 
       <footer
         className="hairline-b border-t px-3 py-2.5"

@@ -7,7 +7,6 @@ import { hubs } from '../helpers.js';
  */
 test.describe('pairing', () => {
   test('the QR url pairs, connects, and survives a reload', async ({ page }) => {
-    test.skip(test.info().project.name !== 'ipad', 'one-time pairing token');
     const { authUrl, pairToken } = hubs();
 
     await page.goto(`${authUrl}/#pair=${pairToken}`);
@@ -40,7 +39,6 @@ test.describe('pairing', () => {
   });
 
   test('a stale token lands on the pair screen with the reason', async ({ page }) => {
-    test.skip(test.info().project.name !== 'ipad', 'one-time pairing token');
     const { authUrl, pairToken } = hubs();
     // The first test consumed the token; replaying it must fail loudly.
     await page.goto(`${authUrl}/#pair=${pairToken}`);

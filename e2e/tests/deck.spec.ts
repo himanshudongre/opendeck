@@ -18,13 +18,13 @@ test('tiles track the scripted fleet statuses', async ({ page }) => {
   await expect(page.getByRole('button', { name: /terraform drift check/ })).toBeVisible();
 
   // Scripted transitions show up as live tile statuses.
-  await expect(
-    page.getByRole('button', { name: 'fix flaky auth test — needs approval' }),
-  ).toBeVisible();
-  await expect(page.getByRole('button', { name: 'tune retrieval evals — error' })).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: /migrate to app router — (working|thinking)/ }),
-  ).toBeVisible();
+  await expect(page.getByRole('button', { name: /fix flaky auth test/ })).toContainText(
+    'needs approval',
+  );
+  await expect(page.getByRole('button', { name: /tune retrieval evals/ })).toContainText('error');
+  await expect(page.getByRole('button', { name: /migrate to app router/ })).toContainText(
+    /working|thinking|Bash|Edit/,
+  );
 
   // The stat bar reports honest connection state and fleet counts.
   await expect(page.getByRole('status', { name: /Connection:/ })).toHaveAttribute(

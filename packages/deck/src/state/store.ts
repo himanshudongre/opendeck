@@ -43,6 +43,8 @@ export interface DeckState {
   connection: ConnectionState;
   latencyMs: number | undefined;
   hubVersion: string | undefined;
+  /** How the last hello caught us up — `resumed` means zero missed events. */
+  lastResume: 'fresh' | 'resumed' | 'snapshot' | undefined;
   lastSeq: number;
   sessions: Record<string, Session>;
   order: string[];
@@ -110,6 +112,7 @@ export const useDeck = create<DeckState>((set, get) => ({
   connection: 'unpaired',
   latencyMs: undefined,
   hubVersion: undefined,
+  lastResume: undefined,
   lastSeq: 0,
   sessions: {},
   order: [],
@@ -236,6 +239,7 @@ function fold(state: DeckState, msg: ServerMsg): DeckState {
       return {
         ...state,
         hubVersion: msg.payload.hubVersion,
+        lastResume: msg.payload.resume,
         sessions,
         order: [...known, ...fresh],
         lastSeq: msg.payload.seq,

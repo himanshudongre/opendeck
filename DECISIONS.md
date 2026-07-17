@@ -144,6 +144,24 @@ Pair: single centered keycap panel — wordmark, one-line explanation, camera-le
 - PWA: vite-plugin-pwa `generateSW`, offline app shell, PNG icons generated at build by a dependency-free script (hand-rolled PNG encoder) so the repo carries no binary blobs.
 - Themes ship as token JSON (Graphite, Workshop `#EDE6D6` cream slab with charcoal keys, Void true `#000`); `applyTheme` writes CSS variables; the editor edits the same JSON live and exports/imports it.
 
+## Deck build notes (Phase 6, post-implementation)
+
+- Custom CSS classes (`keycap`, `panel`, `font-*`) live in `@layer components` so Tailwind utilities keep winning the cascade (the dial's `rounded-full` was silently losing before this).
+- A hub run with `--no-auth` is detected by probing `/api/snapshot` without credentials; the deck connects credential-less instead of demanding a pairing that can't exist.
+- After a `fresh`/`snapshot` hello the hub re-sends pending permission requests to that client, so a rejoining deck regains its approval cards (replayed `resumed` gaps already carry them).
+- `window.__AGENTDECK_STORE__` exposes the zustand store as a deliberate debugging/E2E surface.
+- The store records `lastResume` from each hello — it is the observable proof that a reconnect was a replay (`resumed`) rather than a snapshot fallback.
+- jsdom quirks under Node 25: the experimental Node `localStorage` shadows jsdom's (tests install a real in-memory Storage), and `Element.scrollTo`/`matchMedia`/rAF get deterministic stand-ins.
+
+## E2E + perf (Phase 7)
+
+- Playwright device projects (iPhone 14 / iPad / desktop) all run on chromium: one browser download in CI, same viewports/touch semantics; engine-specific behavior is not what these suites assert.
+- Global setup boots two built hubs: an open one (`--no-auth`, sim speed 12) shared by the viewport suites, and an authenticated one whose banner-printed QR token feeds the pairing test. Tests that consume one-shot demo state (pairing token, permission approvals, network offline) are pinned to a single project; `workers: 1` keeps the shared fleet deterministic.
+- The reconnect test asserts three things: the deck saw the offline gap (`lastSeq` catches up past a seq captured from `/api/snapshot` while offline), the hello was `resumed` (zero missed events, not a snapshot fallback), and the session set matches the hub's.
+- Reduced-motion coverage asserts computed styles (Deskglow removed, pulses off) and archives a screenshot as a test artifact; golden-pixel comparisons across CI platforms are flake, not rigor.
+- Voice-key gating: 127.0.0.1 is a secure context and chromium ships webkitSpeechRecognition, so E2E asserts the armed state; the insecure/unsupported branches are unit-tested where the context is controllable.
+- Perf harness measures input→ack over a real WS with sequential `subscribe` messages (200 samples): p95 0.22 ms on loopback vs the 30 ms budget. Bundle gate gzips deck js+css: 120.8 KB vs the 300 KB budget.
+
 ## Phase log
 
 - [x] Phase 0 — Recon
@@ -152,7 +170,7 @@ Pair: single centered keycap panel — wordmark, one-line explanation, camera-le
 - [x] Phase 3 — Hub core
 - [x] Phase 4 — Simulator
 - [x] Phase 5 — Real adapters
-- [ ] Phase 6 — Deck
-- [ ] Phase 7 — E2E + perf
+- [x] Phase 6 — Deck
+- [x] Phase 7 — E2E + perf
 - [ ] Phase 8 — Docs & release
 - [ ] Phase 9 — Adversarial self-review

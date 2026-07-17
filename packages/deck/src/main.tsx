@@ -7,6 +7,10 @@ import './styles/app.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App.js';
+import { useDeck } from './state/store.js';
+
+// Debugging/E2E surface: lets a console or Playwright read the live store.
+(globalThis as Record<string, unknown>).__AGENTDECK_STORE__ = useDeck;
 
 const container = document.getElementById('root');
 if (!container) {

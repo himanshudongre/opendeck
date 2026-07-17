@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "lib": ["ES2023", "DOM"],
+    "noEmit": true
+  },
+  "include": [
+    "tests",
+    "playwright.config.ts",
+    "global-setup.ts",
+    "global-teardown.ts",
+    "helpers.ts"
+  ]
+}

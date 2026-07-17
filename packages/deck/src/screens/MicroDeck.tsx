@@ -7,7 +7,7 @@ import { controller } from '../lib/controller.js';
 import { createCoalescer } from '../lib/coalescer.js';
 import { formatCost, formatTokens, statusLabel } from '../lib/format.js';
 import { hapticTick } from '../lib/haptics.js';
-import { playTick } from '../lib/sound.js';
+import { playDetent, playKeyDown, playKeyUp } from '../lib/sound.js';
 import { startVoice, voiceAvailability, type VoiceSession } from '../lib/voice.js';
 import { useDeck } from '../state/store.js';
 import { axesFor } from '../widgets/Dial.js';
@@ -25,11 +25,18 @@ const ACCENT_TOKEN = {
 const SWEEP_DEG = 270;
 const START_DEG = -135;
 
-function useTick(): () => void {
+/** Bottom-out on press, a smaller brighter strike on release — like a switch. */
+function usePress(): { down: () => void; up: () => void } {
   const settings = useDeck((state) => state.settings);
-  return () => {
-    hapticTick(settings.haptics);
-    playTick(settings.sound);
+  return {
+    down: () => {
+      hapticTick(settings.haptics);
+      playKeyDown(settings.sound);
+    },
+    up: () => {
+      hapticTick(settings.haptics, 6);
+      playKeyUp(settings.sound);
+    },
   };
 }
 
@@ -45,7 +52,7 @@ function AgentKey({
   onSelect: () => void;
   onOpen: () => void;
 }) {
-  const tick = useTick();
+  const press = usePress();
   const timer = useRef<number | undefined>(undefined);
   const longPressed = useRef(false);
   const color = session ? statusColorVar(session.status) : undefined;
@@ -69,7 +76,7 @@ function AgentKey({
         }
         onPointerDown={() => {
           if (!session) return;
-          tick();
+          press.down();
           longPressed.current = false;
           timer.current = window.setTimeout(() => {
             longPressed.current = true;
@@ -77,7 +84,10 @@ function AgentKey({
             onOpen();
           }, 450);
         }}
-        onPointerUp={() => window.clearTimeout(timer.current)}
+        onPointerUp={() => {
+          if (session) press.up();
+          window.clearTimeout(timer.current);
+        }}
         onPointerLeave={() => window.clearTimeout(timer.current)}
         onClick={() => {
           if (session && !longPressed.current) onSelect();
@@ -114,7 +124,7 @@ function CommandKey({
   disabled?: boolean;
   children: React.ReactNode;
 }) {
-  const tick = useTick();
+  const press = usePress();
   return (
     <div className="micro-socket">
       <button
@@ -123,7 +133,10 @@ function CommandKey({
         disabled={disabled}
         className="micro-cap flex h-11 w-full items-center justify-center disabled:opacity-45"
         onPointerDown={() => {
-          if (!disabled) tick();
+          if (!disabled) press.down();
+        }}
+        onPointerUp={() => {
+          if (!disabled) press.up();
         }}
         onClick={() => {
           if (!disabled) onPress();
@@ -172,7 +185,7 @@ function MicroKnob({ target }: { target: Session | undefined }) {
     if (clamped !== valueIndex) {
       setValueIndex(clamped);
       hapticTick(settings.haptics);
-      playTick(settings.sound);
+      playDetent(settings.sound);
       const value = axis.values[clamped];
       if (value !== undefined) coalescer.push({ sessionId: target.id, axis: axis.axis, value });
     }
@@ -289,7 +302,7 @@ function MicroStick({ targetId }: { targetId: string | undefined }) {
     const direction =
       Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
     hapticTick(settings.haptics, 12);
-    playTick(settings.sound);
+    playDetent(settings.sound);
     controller.action({
       sessionId: targetId,
       kind: 'prompt_template',
@@ -353,6 +366,7 @@ function MicBar({ targetId }: { targetId: string | undefined }) {
   const begin = (): void => {
     if (!available) return;
     hapticTick(settings.haptics, 12);
+    playKeyDown(settings.sound);
     setListening(true);
     setTranscript('');
     session.current = startVoice(
@@ -381,7 +395,10 @@ function MicBar({ targetId }: { targetId: string | undefined }) {
         }
         className={`micro-cap flex h-11 w-full items-center justify-center gap-2 ${available ? '' : 'opacity-45'}`}
         onPointerDown={begin}
-        onPointerUp={() => session.current?.stop()}
+        onPointerUp={() => {
+          if (available) playKeyUp(settings.sound);
+          session.current?.stop();
+        }}
         onPointerLeave={() => session.current?.stop()}
       >
         <Mic

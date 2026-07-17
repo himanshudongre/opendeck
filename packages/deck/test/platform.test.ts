@@ -1,52 +1,88 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { playTick } from '../src/lib/sound.js';
+import { playDetent, playKeyDown, playKeyUp } from '../src/lib/sound.js';
 import { startVoice } from '../src/lib/voice.js';
 import { acquireWakeLock } from '../src/lib/wakelock.js';
 
 describe('sound synthesis', () => {
+  const nodes = { started: 0 };
+
+  class FakeParam {
+    value = 0;
+    setValueAtTime = vi.fn();
+    exponentialRampToValueAtTime = vi.fn();
+  }
+  class FakeNode {
+    frequency = new FakeParam();
+    gain = new FakeParam();
+    Q = new FakeParam();
+    threshold = new FakeParam();
+    knee = new FakeParam();
+    ratio = new FakeParam();
+    attack = new FakeParam();
+    release = new FakeParam();
+    buffer: unknown = undefined;
+    type = '';
+    connect(): this {
+      return this;
+    }
+    start(): void {
+      nodes.started += 1;
+    }
+    stop(): void {
+      // Sources schedule their own stop.
+    }
+  }
+  class FakeAudioContext {
+    currentTime = 0;
+    sampleRate = 48000;
+    state = 'running';
+    destination = {};
+    resume = vi.fn();
+    createGain = (): FakeNode => new FakeNode();
+    createOscillator = (): FakeNode => new FakeNode();
+    createBiquadFilter = (): FakeNode => new FakeNode();
+    createBufferSource = (): FakeNode => new FakeNode();
+    createDynamicsCompressor = (): FakeNode => new FakeNode();
+    createBuffer = (): { getChannelData: () => Float32Array } => ({
+      getChannelData: () => new Float32Array(16),
+    });
+  }
+
   afterEach(() => {
     vi.unstubAllGlobals();
+    nodes.started = 0;
   });
 
-  it('does nothing for silent and off presets', () => {
-    playTick('silent');
-    playTick('off');
-  });
-
-  it('synthesizes the clicky tick through WebAudio', () => {
-    const nodes = { started: 0, connected: 0 };
-    class FakeParam {
-      setValueAtTime = vi.fn();
-      exponentialRampToValueAtTime = vi.fn();
-    }
-    class FakeNode {
-      frequency = new FakeParam();
-      gain = new FakeParam();
-      type = '';
-      connect(): this {
-        nodes.connected += 1;
-        return this;
-      }
-      start(): void {
-        nodes.started += 1;
-      }
-      stop(): void {
-        // The oscillator schedules its own stop.
-      }
-    }
-    class FakeAudioContext {
-      currentTime = 0;
-      state = 'running';
-      destination = {};
-      resume = vi.fn();
-      createGain = (): FakeNode => new FakeNode();
-      createOscillator = (): FakeNode => new FakeNode();
-      createBiquadFilter = (): FakeNode => new FakeNode();
-    }
+  it('does nothing for the off preset', () => {
     vi.stubGlobal('AudioContext', FakeAudioContext);
-    playTick('clicky');
-    expect(nodes.started).toBe(1);
-    expect(nodes.connected).toBe(3);
+    playKeyDown('off');
+    playKeyUp('off');
+    playDetent('off');
+    expect(nodes.started).toBe(0);
+  });
+
+  it('layers click, plate strike, and case resonance for clicky', () => {
+    vi.stubGlobal('AudioContext', FakeAudioContext);
+    playKeyDown('clicky');
+    expect(nodes.started).toBe(3);
+  });
+
+  it('drops the click leaf for thocky and silent switches', () => {
+    vi.stubGlobal('AudioContext', FakeAudioContext);
+    playKeyDown('thocky');
+    expect(nodes.started).toBe(2);
+    nodes.started = 0;
+    playKeyDown('silent');
+    expect(nodes.started).toBe(2);
+  });
+
+  it('release and detents are their own smaller strikes', () => {
+    vi.stubGlobal('AudioContext', FakeAudioContext);
+    playKeyUp('clicky');
+    expect(nodes.started).toBe(3);
+    nodes.started = 0;
+    playDetent('thocky');
+    expect(nodes.started).toBe(2);
   });
 });
 

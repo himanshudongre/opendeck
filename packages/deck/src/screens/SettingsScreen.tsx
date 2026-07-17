@@ -1,7 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { controller } from '../lib/controller.js';
-import type { SoundPreset } from '../lib/sound.js';
+import { playKeyDown, type SoundPreset } from '../lib/sound.js';
 import { PRESET_THEMES } from '../state/themes.js';
 import type { LayoutConfig } from '../state/layouts.js';
 import { useDeck } from '../state/store.js';
@@ -98,12 +98,15 @@ export function SettingsScreen() {
           Feel
         </h3>
         <Row label="Key sound">
-          {(['clicky', 'silent', 'off'] as SoundPreset[]).map((preset) => (
+          {(['clicky', 'thocky', 'silent', 'off'] as SoundPreset[]).map((preset) => (
             <Chip
               key={preset}
               label={preset}
               active={settings.sound === preset}
-              onClick={() => updateSettings({ sound: preset })}
+              onClick={() => {
+                updateSettings({ sound: preset });
+                playKeyDown(preset);
+              }}
             />
           ))}
         </Row>

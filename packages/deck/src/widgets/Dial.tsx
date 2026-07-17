@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { controller } from '../lib/controller.js';
 import { createCoalescer } from '../lib/coalescer.js';
 import { hapticTick } from '../lib/haptics.js';
-import { playTick } from '../lib/sound.js';
+import { playDetent } from '../lib/sound.js';
 import { useDeck } from '../state/store.js';
 
 interface DialAxis {
@@ -110,7 +110,7 @@ export function Dial() {
     if (clamped !== valueIndex) {
       setValueIndex(clamped);
       hapticTick(settings.haptics);
-      playTick(settings.sound);
+      playDetent(settings.sound);
       const value = axis.values[clamped];
       if (value !== undefined) {
         coalescer.push({ sessionId: target.id, axis: axis.axis, value });

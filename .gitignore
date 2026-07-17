@@ -10,3 +10,6 @@ test-results/
 .env.*
 packages/deck/public/icon-*.png
 e2e/.state/
+
+# Local Claude Code launch config
+.claude/

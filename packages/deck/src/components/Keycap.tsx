@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react';
 import type { ReactNode } from 'react';
 import { hapticTick } from '../lib/haptics.js';
-import { playTick } from '../lib/sound.js';
+import { playKeyDown, playKeyUp } from '../lib/sound.js';
 import { useDeck } from '../state/store.js';
 
 interface KeycapProps {
@@ -61,10 +61,13 @@ export function Keycap({
       onPointerDown={() => {
         if (disabled) return;
         hapticTick(settings.haptics);
-        playTick(settings.sound);
+        playKeyDown(settings.sound);
         startLongPress();
       }}
-      onPointerUp={clearLongPress}
+      onPointerUp={() => {
+        if (!disabled) playKeyUp(settings.sound);
+        clearLongPress();
+      }}
       onPointerLeave={clearLongPress}
       onClick={() => {
         if (disabled || longPressed) return;

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { controller } from '../lib/controller.js';
 import { hapticTick } from '../lib/haptics.js';
-import { playTick } from '../lib/sound.js';
+import { playDetent } from '../lib/sound.js';
 import { DEFAULT_JOG_BINDINGS, type JogDirection } from '../state/layouts.js';
 import { useDeck } from '../state/store.js';
 
@@ -24,7 +24,7 @@ export function JogPad() {
   const fire = (direction: JogDirection): void => {
     if (target === undefined) return;
     hapticTick(settings.haptics, 12);
-    playTick(settings.sound);
+    playDetent(settings.sound);
     setLastFired(direction);
     window.setTimeout(() => setLastFired(undefined), 400);
     controller.action({

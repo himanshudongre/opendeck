@@ -3,6 +3,7 @@ import type { LayoutPreset, TileSize, WidgetVisibility } from '../state/layouts.
 import { useDeck } from '../state/store.js';
 
 const PRESET_LABELS: Record<LayoutPreset, string> = {
+  micro: 'Micro (device)',
   'phone-portrait': 'Phone portrait',
   'phone-landscape': 'Phone landscape',
   tablet: 'Tablet',
@@ -25,6 +26,7 @@ export function EditOverlay() {
   const updateLayout = useDeck((state) => state.updateLayout);
   const setTileSize = useDeck((state) => state.setTileSize);
   const setEditMode = useDeck((state) => state.setEditMode);
+  const setScreen = useDeck((state) => state.setScreen);
 
   return (
     <div className="panel fixed inset-x-3 bottom-3 z-40 max-h-[60%] overflow-y-auto p-4 shadow-2xl">
@@ -42,6 +44,16 @@ export function EditOverlay() {
       <p className="mt-1 text-[11px] text-ink-3">
         Use the arrows on each tile to reorder. Layouts and themes export from Settings.
       </p>
+      <button
+        type="button"
+        className="keycap mt-2 px-3 py-1.5 text-xs text-ink-1"
+        onClick={() => {
+          setEditMode(false);
+          setScreen('settings');
+        }}
+      >
+        Open settings
+      </button>
 
       <h3 className="font-data mt-4 text-[10px] uppercase tracking-wider text-ink-3">Layout</h3>
       <div className="mt-1.5 grid grid-cols-2 gap-1.5">

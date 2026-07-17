@@ -1,6 +1,7 @@
 import type { ActionKind } from '@agentdeck/protocol';
 
-export type LayoutPreset = 'phone-portrait' | 'phone-landscape' | 'tablet' | 'desktop-strip';
+export type LayoutPreset =
+  'phone-portrait' | 'phone-landscape' | 'tablet' | 'desktop-strip' | 'micro';
 export type TileSize = 'S' | 'M' | 'L';
 
 export interface ActionKeyBinding {
@@ -76,6 +77,13 @@ export const LAYOUT_PRESETS: Record<LayoutPreset, LayoutConfig> = {
     widgets: { ...ALL_WIDGETS, dial: false, jogPad: false, voiceKey: false },
     actionKeys: DEFAULT_ACTION_KEYS.slice(0, 2),
   },
+  // The whole deck rendered as one physical device (Codex Micro grammar).
+  micro: {
+    preset: 'micro',
+    tileSize: 'M',
+    widgets: { ...ALL_WIDGETS },
+    actionKeys: DEFAULT_ACTION_KEYS,
+  },
 };
 
 /** Grid column class per preset+size — the whole layout system in one place. */
@@ -85,6 +93,7 @@ export function gridColumns(preset: LayoutPreset, size: TileSize): number {
     'phone-landscape': 3,
     tablet: 3,
     'desktop-strip': 6,
+    micro: 2,
   };
   const adjust = size === 'S' ? 1 : size === 'L' ? -1 : 0;
   return Math.max(1, base[preset] + adjust);

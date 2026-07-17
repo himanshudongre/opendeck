@@ -8,7 +8,7 @@ import type { Adapter, DetectResult, ManagedSession, SpawnOpts } from '../types.
 import { CodexStreamNormalizer } from './events.js';
 
 /** Reasoning-effort detents for the Codex dial (SPEC §4.2). */
-export const CODEX_EFFORT_DETENTS = ['minimal', 'low', 'medium', 'high'];
+export const CODEX_EFFORT_DETENTS = ['minimal', 'low', 'medium', 'high', 'xhigh'];
 
 /** Sandbox policy presets selectable from the deck. */
 export const CODEX_SANDBOX_PRESETS = ['read-only', 'workspace-write', 'danger-full-access'];

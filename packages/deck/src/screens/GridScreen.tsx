@@ -8,6 +8,7 @@ import { StatBar } from '../widgets/StatBar.js';
 import { Ticker } from '../widgets/Ticker.js';
 import { VoiceKey } from '../widgets/VoiceKey.js';
 import { EditOverlay } from './EditOverlay.js';
+import { MicroDeck } from './MicroDeck.js';
 
 export function GridScreen() {
   const sessions = useDeck((state) => state.sessions);
@@ -20,6 +21,15 @@ export function GridScreen() {
   const ordered = order.flatMap((id) => (sessions[id] ? [sessions[id]] : []));
   const columns = gridColumns(layout.preset, layout.tileSize);
   const sideRail = layout.preset === 'phone-landscape' || layout.preset === 'tablet';
+
+  if (layout.preset === 'micro') {
+    return (
+      <div className="relative h-full">
+        <MicroDeck />
+        {editMode && <EditOverlay />}
+      </div>
+    );
+  }
 
   const physicalControls = layout.widgets.jogPad || layout.widgets.dial || layout.widgets.voiceKey;
   const controls = (

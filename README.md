@@ -30,20 +30,25 @@ npx agent-deck --demo
 OpenAI's Codex Micro sells two real things: ambient glanceable status and
 one-press tactile control. It's $230, it's six keys, and it only speaks Codex.
 
-|           | AgentDeck                                                     | Codex Micro          |
-| --------- | ------------------------------------------------------------- | -------------------- |
-| Price     | $0, MIT-licensed                                              | $230, limited run    |
-| Agents    | Unlimited tiles                                               | 6 RGB keys           |
-| Status    | Color + harness, repo/branch, elapsed, current tool, cost     | Color                |
-| Approvals | The actual command or unified diff, one tap                   | A blinking key       |
-| Harnesses | Claude Code + Codex now; one adapter interface for more       | Codex                |
-| Controls  | Bindable action keys, dial with detents, jog pad, voice key   | 13 keys, dial, stick |
-| Feel      | Press physics, haptics, synthesized key ticks (clicky/silent) | Real keycaps (fair!) |
-| Where     | Any browser on your LAN, installable PWA, always-awake        | Your desk            |
-| Cloud     | None. LAN only, no telemetry, no accounts                     | —                    |
+|             | AgentDeck                                                                                                                                   | Codex Micro            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| Price       | $0, MIT-licensed                                                                                                                            | $230, limited run      |
+| Agents      | Unlimited tiles                                                                                                                             | 6 RGB keys             |
+| Status      | Color + harness, repo/branch, elapsed, current tool, cost                                                                                   | Color                  |
+| Approvals   | The actual command or unified diff, one tap                                                                                                 | A blinking key         |
+| Harnesses   | Claude Code + Codex now; one adapter interface for more                                                                                     | Codex                  |
+| Controls    | Bindable action keys, dial with detents, jog pad, voice key                                                                                 | 13 keys, dial, stick   |
+| Device mode | **Micro layout**: the whole deck as one rendered device — LED agent keys, reasoning knob (minimal→xhigh), joystick workflows, e-ink readout | The real thing (fair!) |
+| Feel        | Press physics, haptics, synthesized key ticks (clicky/silent)                                                                               | Real keycaps (fair!)   |
+| Where       | Any browser on your LAN, installable PWA, always-awake                                                                                      | Your desk              |
+| Cloud       | None. LAN only, no telemetry, no accounts                                                                                                   | —                      |
 
 <p align="center">
   <img src="docs/deck-graphite-phone.png" alt="Graphite theme on a phone: seven agent tiles with status glows over a dark slab, action keys, brass-needle dial and voice key" width="300" />
+  <img src="docs/deck-micro.png" alt="Micro mode: the deck rendered as one physical device — knurled reasoning knob, six LED agent keys, joystick, command keys, mic bar and an e-ink readout strip" width="300" />
+</p>
+
+<p align="center">
   <img src="docs/deck-focus-permission.png" alt="Focus view: a permission card showing a real SQL migration with approve and deny keys" width="300" />
 </p>
 

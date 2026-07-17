@@ -211,7 +211,7 @@ describe('Dial bindings', () => {
 
     const codex = axesFor(makeSession({ harness: 'codex' }));
     expect(codex).toHaveLength(1);
-    expect(codex[0]?.values).toEqual(['minimal', 'low', 'medium', 'high']);
+    expect(codex[0]?.values).toEqual(['minimal', 'low', 'medium', 'high', 'xhigh']);
 
     const sim = axesFor(makeSession({ harness: 'simulator' }));
     expect(sim[0]?.axis).toBe('effort');

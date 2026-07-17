@@ -80,6 +80,39 @@ async function screenshots() {
     out('wrote docs/deck-focus-permission.png');
     await phone.close();
 
+    // Micro mode: the whole deck as one rendered device.
+    const micro = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 2,
+      isMobile: true,
+      hasTouch: true,
+    });
+    await micro.addInitScript(() => {
+      localStorage.setItem(
+        'agentdeck.layout',
+        JSON.stringify({
+          preset: 'micro',
+          tileSize: 'M',
+          widgets: {
+            statBar: true,
+            ticker: true,
+            actionKeys: true,
+            dial: true,
+            jogPad: true,
+            voiceKey: true,
+          },
+          actionKeys: [],
+        }),
+      );
+    });
+    const microPage = await micro.newPage();
+    await microPage.goto(URL);
+    await microPage.getByRole('slider').waitFor();
+    await microPage.waitForTimeout(2500);
+    await microPage.screenshot({ path: join(docsDir, 'deck-micro.png') });
+    out('wrote docs/deck-micro.png');
+    await micro.close();
+
     // Workshop, tablet: the cream slab homage.
     const tablet = await browser.newContext({
       viewport: { width: 1180, height: 820 },

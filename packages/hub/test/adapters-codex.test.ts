@@ -148,7 +148,7 @@ describe('codex specifics', () => {
       payload: { sessionId, text: 'harder' },
     });
     expect(log.calls[1]?.args.join(' ')).toContain('model_reasoning_effort=high');
-    expect(CODEX_EFFORT_DETENTS).toEqual(['minimal', 'low', 'medium', 'high']);
+    expect(CODEX_EFFORT_DETENTS).toEqual(['minimal', 'low', 'medium', 'high', 'xhigh']);
   });
 
   it('selects sandbox presets through the custom action', async () => {

@@ -21,7 +21,7 @@ export function axesFor(session: Session): DialAxis[] {
       {
         axis: 'effort',
         label: 'effort',
-        values: ['minimal', 'low', 'medium', 'high'],
+        values: ['minimal', 'low', 'medium', 'high', 'xhigh'],
         initial: 'medium',
       },
     ];

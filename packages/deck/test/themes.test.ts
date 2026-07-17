@@ -55,12 +55,13 @@ describe('parseThemeJson', () => {
 });
 
 describe('layouts', () => {
-  it('ships the four presets from the spec', () => {
+  it('ships the four spec presets plus the micro device', () => {
     expect(Object.keys(LAYOUT_PRESETS)).toEqual([
       'phone-portrait',
       'phone-landscape',
       'tablet',
       'desktop-strip',
+      'micro',
     ]);
   });
 

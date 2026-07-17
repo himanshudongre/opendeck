@@ -1,4 +1,4 @@
-// Bundles the built deck into the hub package so `npx agent-deck` ships one artifact.
+// Bundles the built deck into the hub package so `npx opendeck` ships one artifact.
 import { cpSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';

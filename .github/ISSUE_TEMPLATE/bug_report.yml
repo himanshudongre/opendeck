@@ -1,12 +1,12 @@
 name: Bug report
-description: Something in AgentDeck is broken
+description: Something in OpenDeck is broken
 labels: [bug]
 body:
   - type: input
     id: version
     attributes:
-      label: AgentDeck version
-      description: Output of `agentdeck --version`
+      label: OpenDeck version
+      description: Output of `opendeck --version`
     validations:
       required: true
   - type: input
@@ -49,5 +49,5 @@ body:
     id: logs
     attributes:
       label: Hub logs
-      description: Relevant lines from `~/.agentdeck/logs/`
+      description: Relevant lines from `~/.opendeck/logs/`
       render: text

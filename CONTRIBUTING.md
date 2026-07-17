@@ -1,4 +1,4 @@
-# Contributing to AgentDeck
+# Contributing to OpenDeck
 
 Thanks for wanting to make the deck better. This file is the practical
 half; the product spec is [SPEC.md](SPEC.md) and the running log of choices
@@ -19,7 +19,7 @@ hot reload, run the Vite dev server against a local hub:
 
 ```sh
 node packages/hub/dist/cli.js --demo --no-auth &
-VITE_HUB_URL=http://127.0.0.1:3325 pnpm --filter @agentdeck/deck dev
+VITE_HUB_URL=http://127.0.0.1:3325 pnpm --filter @opendeck/deck dev
 ```
 
 ## Test matrix
@@ -41,6 +41,25 @@ errors; no `console.*` outside `packages/hub/src/logger.ts`; UI copy is
 sentence case with no exclamation marks. Conventional commits (`feat:`,
 `fix:`, `test:`, `docs:`, `chore:`), and `pnpm changeset` for anything
 user-visible.
+
+## Extending OpenDeck
+
+The deck is deliberately data-driven so most extensions are small PRs:
+
+- **A new theme**: add a `ThemeTokens` object in
+  `packages/deck/src/state/themes.ts` and register it in `PRESET_THEMES`.
+  Users can already build and share themes as JSON without any code.
+- **A new key icon**: one line in `packages/deck/src/state/icons.ts` — the
+  curated set is what keeps shared layout JSON portable.
+- **New default bindings or layouts**: `packages/deck/src/state/layouts.ts`
+  (`DEFAULT_ACTION_KEYS`, `DEFAULT_JOG_BINDINGS`, `LAYOUT_PRESETS`).
+- **A new widget**: drop a component in `packages/deck/src/widgets/`, add a
+  visibility flag to `WidgetVisibility`, render it from `GridScreen`, and
+  give it a toggle in `EditOverlay`. Widgets read the zustand store and call
+  `controller` — never the socket directly.
+- **A new screen-side capability** (protocol change): extend the zod schemas
+  in `packages/protocol` first; both hub and deck validate at that boundary,
+  and the codec round-trip tests will hold you honest.
 
 ## Writing an adapter
 
@@ -79,5 +98,5 @@ The pattern that keeps adapters testable, taken from the two that ship:
 ## Releasing
 
 Changesets drive versioning. `pnpm changeset` in your PR; the release
-workflow publishes `agent-deck` to npm with provenance when the release PR
+workflow publishes `opendeck` to npm with provenance when the release PR
 merges.

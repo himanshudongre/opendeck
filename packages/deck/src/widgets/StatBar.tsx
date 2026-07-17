@@ -34,7 +34,7 @@ export function StatBar() {
   return (
     <header className="hairline-b flex items-center gap-3 px-4 py-2.5">
       <span className="font-display text-sm tracking-wide" style={{ color: 'var(--brass)' }}>
-        ▲ agentdeck
+        ▲ opendeck
       </span>
       <span className="font-data text-[11px] text-ink-2">
         {running} running · {waiting} waiting

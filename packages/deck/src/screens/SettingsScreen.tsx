@@ -1,7 +1,9 @@
 import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
 import { controller } from '../lib/controller.js';
 import type { SoundPreset } from '../lib/sound.js';
 import { PRESET_THEMES } from '../state/themes.js';
+import type { LayoutConfig } from '../state/layouts.js';
 import { useDeck } from '../state/store.js';
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -32,7 +34,10 @@ export function SettingsScreen() {
   const updateSettings = useDeck((state) => state.updateSettings);
   const setScreen = useDeck((state) => state.setScreen);
   const setTheme = useDeck((state) => state.setTheme);
+  const updateLayout = useDeck((state) => state.updateLayout);
   const hubVersion = useDeck((state) => state.hubVersion);
+  const [layoutDraft, setLayoutDraft] = useState('');
+  const [layoutNote, setLayoutNote] = useState<string | undefined>(undefined);
 
   const httpsUrl = ((): string => {
     const url = new URL(window.location.origin);
@@ -140,6 +145,55 @@ export function SettingsScreen() {
         )}
 
         <h3 className="font-data px-4 pb-1 pt-4 text-[10px] uppercase tracking-wider text-ink-3">
+          Layout
+        </h3>
+        <div className="px-4 py-2">
+          <p className="text-[11px] leading-relaxed text-ink-3">
+            Layouts serialize to JSON: key bindings, icons, joystick workflows, widgets. Copy yours
+            to share it, or paste one in.
+          </p>
+          <div className="mt-2 flex gap-1.5">
+            <button
+              type="button"
+              className="keycap px-3 py-1.5 text-[11px] text-ink-1"
+              onClick={() => {
+                void navigator.clipboard
+                  .writeText(JSON.stringify(useDeck.getState().layout, null, 2))
+                  .then(() => setLayoutNote('Layout JSON copied.'));
+              }}
+            >
+              Copy layout JSON
+            </button>
+          </div>
+          <textarea
+            aria-label="Paste layout JSON"
+            value={layoutDraft}
+            placeholder="Paste layout JSON"
+            className="keycap font-data mt-2 h-20 w-full px-3 py-2 text-[11px] text-ink-1 placeholder:text-ink-3"
+            onChange={(event) => setLayoutDraft(event.target.value)}
+          />
+          <button
+            type="button"
+            className="keycap mt-1.5 px-3 py-1.5 text-[11px] text-ink-1"
+            onClick={() => {
+              try {
+                const parsed = JSON.parse(layoutDraft) as Partial<LayoutConfig> | null;
+                if (parsed === null || !Array.isArray(parsed.actionKeys)) {
+                  throw new Error('shape');
+                }
+                updateLayout(parsed);
+                setLayoutNote('Layout imported.');
+              } catch {
+                setLayoutNote('That JSON isn\u2019t a valid layout. Nothing changed.');
+              }
+            }}
+          >
+            Import layout
+          </button>
+          {layoutNote !== undefined && <p className="mt-2 text-[11px] text-ink-2">{layoutNote}</p>}
+        </div>
+
+        <h3 className="font-data px-4 pb-1 pt-4 text-[10px] uppercase tracking-wider text-ink-3">
           This device
         </h3>
         <Row label="Unpair from this hub">
@@ -153,7 +207,7 @@ export function SettingsScreen() {
         </Row>
         <p className="px-4 pt-2 text-[11px] leading-relaxed text-ink-3">
           Revoke other devices from the hub terminal with{' '}
-          <code className="font-data">agent-deck devices revoke &lt;id&gt;</code>.
+          <code className="font-data">opendeck devices revoke &lt;id&gt;</code>.
         </p>
       </div>
     </div>

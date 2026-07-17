@@ -38,7 +38,7 @@ export type ConfigResult =
   { ok: true; config: HubConfig } | { ok: false; problems: string[]; config: HubConfig };
 
 /**
- * Reads ~/.agentdeck/config.json. A missing file is fine (all defaults);
+ * Reads ~/.opendeck/config.json. A missing file is fine (all defaults);
  * an invalid one returns defaults plus friendly problem descriptions the CLI
  * prints — the hub never refuses to start over config it can recover from.
  */

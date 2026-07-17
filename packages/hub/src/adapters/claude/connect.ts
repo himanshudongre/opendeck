@@ -3,13 +3,13 @@ import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 /**
- * `agent-deck connect claude` — writes idempotent hook config into Claude
+ * `opendeck connect claude` — writes idempotent hook config into Claude
  * Code's settings.json (user or project scope, SPEC §4.1) so terminal
  * sessions report to the hub over HTTP. `disconnect` removes exactly what
  * connect added and nothing else.
  */
 
-/** Marker every AgentDeck-managed hook command contains. */
+/** Marker every OpenDeck-managed hook command contains. */
 export const HOOK_MARKER = '/api/hooks/claude';
 
 /** Events the hub only observes; the hook must never block the CLI. */
@@ -54,7 +54,7 @@ type SettingsShape = Record<string, unknown> & {
 
 export function settingsPathFor(options: ConnectOptions): string {
   return options.scope === 'user'
-    ? join(process.env.AGENTDECK_CLAUDE_HOME ?? join(homedir(), '.claude'), 'settings.json')
+    ? join(process.env.OPENDECK_CLAUDE_HOME ?? join(homedir(), '.claude'), 'settings.json')
     : join(options.cwd ?? process.cwd(), '.claude', 'settings.json');
 }
 
@@ -83,13 +83,13 @@ function writeSettings(path: string, settings: SettingsShape): void {
   writeFileSync(path, `${JSON.stringify(settings, null, 2)}\n`);
 }
 
-function isAgentdeckMatcher(matcher: HookMatcher): boolean {
+function isOpendeckMatcher(matcher: HookMatcher): boolean {
   return matcher.hooks.some((hook) => hook.command.includes(HOOK_MARKER));
 }
 
-/** Removes AgentDeck entries from one event's matcher list, preserving others. */
-function withoutAgentdeck(matchers: HookMatcher[] | undefined): HookMatcher[] {
-  return (matchers ?? []).filter((matcher) => !isAgentdeckMatcher(matcher));
+/** Removes OpenDeck entries from one event's matcher list, preserving others. */
+function withoutOpendeck(matchers: HookMatcher[] | undefined): HookMatcher[] {
+  return (matchers ?? []).filter((matcher) => !isOpendeckMatcher(matcher));
 }
 
 export function connectClaude(options: ConnectOptions): { path: string; changed: boolean } {
@@ -100,12 +100,12 @@ export function connectClaude(options: ConnectOptions): { path: string; changed:
 
   for (const event of FAST_EVENTS) {
     hooks[event] = [
-      ...withoutAgentdeck(hooks[event]),
+      ...withoutOpendeck(hooks[event]),
       { hooks: [{ type: 'command', command: hookCommand(options.port, false) }] },
     ];
   }
   hooks[WAIT_EVENT] = [
-    ...withoutAgentdeck(hooks[WAIT_EVENT]),
+    ...withoutOpendeck(hooks[WAIT_EVENT]),
     {
       hooks: [
         {
@@ -131,7 +131,7 @@ export function disconnectClaude(options: ConnectOptions): { path: string; chang
   let changed = false;
   const hooks: Record<string, HookMatcher[]> = {};
   for (const [event, matchers] of Object.entries(settings.hooks)) {
-    const kept = withoutAgentdeck(matchers);
+    const kept = withoutOpendeck(matchers);
     if (kept.length !== matchers.length) changed = true;
     if (kept.length > 0) hooks[event] = kept;
   }

@@ -14,7 +14,7 @@ export function PairScreen() {
     <div className="flex h-full items-center justify-center p-6">
       <div className="panel w-full max-w-sm px-6 py-8 text-center">
         <p className="font-display text-lg tracking-wide" style={{ color: 'var(--brass)' }}>
-          ▲ agentdeck
+          ▲ opendeck
         </p>
 
         {connection === 'reconnecting' ? (
@@ -30,7 +30,7 @@ export function PairScreen() {
             <p className="mt-2 text-xs leading-relaxed text-ink-2">
               Run{' '}
               <code className="font-data" style={{ color: 'var(--brass)' }}>
-                npx agent-deck
+                npx opendeck
               </code>{' '}
               on your dev machine and scan the QR code it prints. The code opens this page with a
               one-time token and pairs automatically.

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { hubs } from '../helpers.js';
+import { hubs, openDeck } from '../helpers.js';
 
 /**
  * The approve round-trip consumes the invoice session's one-shot permission,
@@ -7,7 +7,7 @@ import { hubs } from '../helpers.js';
  */
 test.describe('approve round-trip', () => {
   test('a deck tap resolves the permission and the scenario continues', async ({ page }) => {
-    await page.goto(hubs().openUrl);
+    await openDeck(page, hubs().openUrl);
 
     const invoiceTile = page.getByRole('button', { name: /speed up invoice list/ });
     await expect(invoiceTile).toContainText('needs approval');

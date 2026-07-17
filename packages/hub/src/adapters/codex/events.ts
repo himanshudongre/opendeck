@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { CurrentTool, SessionStats } from '@agentdeck/protocol';
+import type { CurrentTool, SessionStats } from '@opendeck/protocol';
 import { truncate } from '../pretty.js';
 import type { SessionSink } from '../claude/normalize.js';
 

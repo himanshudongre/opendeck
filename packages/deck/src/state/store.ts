@@ -1,4 +1,4 @@
-import type { PermissionRequest, ServerMsg, Session } from '@agentdeck/protocol';
+import type { PermissionRequest, ServerMsg, Session } from '@opendeck/protocol';
 import { create } from 'zustand';
 import type { SoundPreset } from '../lib/sound.js';
 import { LAYOUT_PRESETS, type LayoutConfig, type LayoutPreset, type TileSize } from './layouts.js';
@@ -34,8 +34,8 @@ export interface DeckSettings {
 
 const TICKER_CAP = 50;
 const TRANSCRIPT_CAP = 200;
-const SETTINGS_KEY = 'agentdeck.settings';
-const LAYOUT_KEY = 'agentdeck.layout';
+const SETTINGS_KEY = 'opendeck.settings';
+const LAYOUT_KEY = 'opendeck.layout';
 
 let tickerSeq = 0;
 
@@ -126,7 +126,7 @@ export const useDeck = create<DeckState>((set, get) => ({
     ...DEFAULT_SETTINGS,
     ...(loadJson(SETTINGS_KEY) as Partial<DeckSettings> | undefined),
   },
-  layout: (loadJson(LAYOUT_KEY) as LayoutConfig | undefined) ?? LAYOUT_PRESETS['phone-portrait'],
+  layout: (loadJson(LAYOUT_KEY) as LayoutConfig | undefined) ?? LAYOUT_PRESETS.micro,
 
   applyServerMsg: (msg) => {
     set((state) => {

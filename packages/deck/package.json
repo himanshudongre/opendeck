@@ -1,5 +1,5 @@
 {
-  "name": "@agentdeck/deck",
+  "name": "@opendeck/deck",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
-    "@agentdeck/protocol": "workspace:*",
+    "@opendeck/protocol": "workspace:*",
     "@fontsource/ibm-plex-mono": "^5.2.7",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/space-grotesk": "^5.2.10",

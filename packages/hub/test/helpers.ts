@@ -1,16 +1,16 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { Session } from '@agentdeck/protocol';
+import type { Session } from '@opendeck/protocol';
 
-/** Points AGENTDECK_HOME at a throwaway dir; returns a cleanup fn. */
+/** Points OPENDECK_HOME at a throwaway dir; returns a cleanup fn. */
 export function tempHome(): () => void {
-  const dir = mkdtempSync(join(tmpdir(), 'agentdeck-test-'));
-  const previous = process.env.AGENTDECK_HOME;
-  process.env.AGENTDECK_HOME = dir;
+  const dir = mkdtempSync(join(tmpdir(), 'opendeck-test-'));
+  const previous = process.env.OPENDECK_HOME;
+  process.env.OPENDECK_HOME = dir;
   return () => {
-    if (previous === undefined) delete process.env.AGENTDECK_HOME;
-    else process.env.AGENTDECK_HOME = previous;
+    if (previous === undefined) delete process.env.OPENDECK_HOME;
+    else process.env.OPENDECK_HOME = previous;
     rmSync(dir, { recursive: true, force: true });
   };
 }

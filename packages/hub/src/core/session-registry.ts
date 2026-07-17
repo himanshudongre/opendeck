@@ -1,4 +1,4 @@
-import type { Action, Session, SetEffortPayload } from '@agentdeck/protocol';
+import type { Action, Session, SetEffortPayload } from '@opendeck/protocol';
 
 /**
  * What an adapter can actually do for a live session. Every method is

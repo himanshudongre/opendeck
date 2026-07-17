@@ -1,4 +1,4 @@
-import type { Session } from '@agentdeck/protocol';
+import type { Session } from '@opendeck/protocol';
 import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { Keycap } from '../components/Keycap.js';

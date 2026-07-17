@@ -39,7 +39,7 @@ export async function loadOrCreateCert(lanAddresses: string[]): Promise<CertPair
   ];
   const tenYears = new Date();
   tenYears.setFullYear(tenYears.getFullYear() + 10);
-  const pems = await generate([{ name: 'commonName', value: 'agentdeck' }], {
+  const pems = await generate([{ name: 'commonName', value: 'opendeck' }], {
     notAfterDate: tenYears,
     keySize: 2048,
     extensions: [

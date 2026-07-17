@@ -1,4 +1,4 @@
-import type { PermissionResolution, Session } from '@agentdeck/protocol';
+import type { PermissionResolution, Session } from '@opendeck/protocol';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   SimulatorFleet,

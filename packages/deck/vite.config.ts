@@ -17,8 +17,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'AgentDeck',
-        short_name: 'AgentDeck',
+        name: 'OpenDeck',
+        short_name: 'OpenDeck',
         description: 'A physical-feeling command deck for AI coding agents.',
         display: 'fullscreen',
         orientation: 'any',

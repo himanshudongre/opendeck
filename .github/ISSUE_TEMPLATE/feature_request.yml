@@ -1,5 +1,5 @@
 name: Feature request
-description: Propose an improvement to AgentDeck
+description: Propose an improvement to OpenDeck
 labels: [enhancement]
 body:
   - type: textarea

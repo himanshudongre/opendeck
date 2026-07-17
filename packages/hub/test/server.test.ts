@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { request as httpsRequest } from 'node:https';
 import { join } from 'node:path';
-import { clientMsg, decodeServerMsg, encodeClientMsg, type ServerMsg } from '@agentdeck/protocol';
+import { clientMsg, decodeServerMsg, encodeClientMsg, type ServerMsg } from '@opendeck/protocol';
 import WebSocket from 'ws';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { HubConfigSchema } from '../src/config.js';
@@ -154,8 +154,8 @@ describe('REST', () => {
     const creds = await pair();
     const authorized = await fetch(`${base()}/api/snapshot`, {
       headers: {
-        'x-agentdeck-device': creds.deviceId,
-        'x-agentdeck-credential': creds.credential,
+        'x-opendeck-device': creds.deviceId,
+        'x-opendeck-credential': creds.credential,
       },
     });
     expect(authorized.status).toBe(200);
@@ -309,9 +309,9 @@ describe('WebSocket', () => {
 describe('deck asset serving', () => {
   it('serves the built deck with an SPA fallback', async () => {
     await running.close();
-    const deckDir = join(process.env.AGENTDECK_HOME ?? '', 'deck-dist');
+    const deckDir = join(process.env.OPENDECK_HOME ?? '', 'deck-dist');
     mkdirSync(deckDir, { recursive: true });
-    writeFileSync(join(deckDir, 'index.html'), '<!doctype html><title>AgentDeck</title>');
+    writeFileSync(join(deckDir, 'index.html'), '<!doctype html><title>OpenDeck</title>');
     const paired: string[] = [];
     running = await startHub({
       config: HubConfigSchema.parse({}),
@@ -324,9 +324,9 @@ describe('deck asset serving', () => {
     });
 
     const index = await (await fetch(base())).text();
-    expect(index).toContain('AgentDeck');
+    expect(index).toContain('OpenDeck');
     const spa = await fetch(`${base()}/settings/themes`);
-    expect(await spa.text()).toContain('AgentDeck');
+    expect(await spa.text()).toContain('OpenDeck');
     const api = await fetch(`${base()}/api/missing`);
     expect(api.status).toBe(404);
 
@@ -399,7 +399,7 @@ describe('websocket edge cases', () => {
     const err = await socket.next(
       (m) => m.type === 'error' && m.payload.code === 'version_mismatch',
     );
-    if (err.type === 'error') expect(err.payload.message).toContain('npx agent-deck@latest');
+    if (err.type === 'error') expect(err.payload.message).toContain('npx opendeck@latest');
     socket.close();
   });
 

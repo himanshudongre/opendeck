@@ -1,4 +1,4 @@
-import { serverMsg, type Session } from '@agentdeck/protocol';
+import { serverMsg, type Session } from '@opendeck/protocol';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PermissionCard } from '../src/components/PermissionCard.js';
@@ -38,6 +38,7 @@ function makeSession(overrides: Partial<Session> = {}): Session {
 
 beforeEach(() => {
   useDeck.getState().reset();
+  useDeck.getState().setLayoutPreset('phone-portrait');
   useDeck.setState({ connection: 'connected', latencyMs: 12 });
 });
 
@@ -222,7 +223,7 @@ describe('screens', () => {
   it('GridScreen shows the spec empty state', () => {
     render(<GridScreen />);
     expect(screen.getByText('No agents yet.')).toBeDefined();
-    expect(screen.getByText(/agent-deck --demo/)).toBeDefined();
+    expect(screen.getByText(/opendeck --demo/)).toBeDefined();
   });
 
   it('GridScreen renders tiles and the control rail', () => {
@@ -270,7 +271,7 @@ describe('screens', () => {
   it('PairScreen explains the pairing flow', () => {
     render(<PairScreen />);
     expect(screen.getByText(/isn’t paired yet/)).toBeDefined();
-    expect(screen.getByText(/npx agent-deck/)).toBeDefined();
+    expect(screen.getByText(/npx opendeck/)).toBeDefined();
   });
 
   it('SettingsScreen toggles sound and haptics', () => {

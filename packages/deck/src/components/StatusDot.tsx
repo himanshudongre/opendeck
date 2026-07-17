@@ -1,4 +1,4 @@
-import type { SessionStatus } from '@agentdeck/protocol';
+import type { SessionStatus } from '@opendeck/protocol';
 
 export function statusColorVar(status: SessionStatus): string {
   switch (status) {

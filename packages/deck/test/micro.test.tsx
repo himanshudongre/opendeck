@@ -1,4 +1,4 @@
-import { serverMsg, type Session } from '@agentdeck/protocol';
+import { serverMsg, type Session } from '@opendeck/protocol';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { controller } from '../src/lib/controller.js';
@@ -43,7 +43,7 @@ describe('MicroDeck', () => {
 
   it('shows the empty-state line with no agents', () => {
     render(<MicroDeck />);
-    expect(screen.getByText(/no agents · run agent-deck --demo/)).toBeDefined();
+    expect(screen.getByText(/no agents · run opendeck --demo/)).toBeDefined();
   });
 
   it('arms approve and deny only while a permission is pending, and answers it', () => {
@@ -101,7 +101,7 @@ describe('MicroDeck', () => {
     const subscribe = vi.spyOn(controller, 'subscribe').mockImplementation(() => undefined);
     render(<MicroDeck />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Interrupt the selected agent' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Interrupt' }));
     expect(action).toHaveBeenCalledWith({ sessionId: 'sess-1', kind: 'interrupt' });
 
     fireEvent.click(screen.getByRole('button', { name: 'Open the selected agent' }));

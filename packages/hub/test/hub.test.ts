@@ -1,4 +1,4 @@
-import type { ServerMsg } from '@agentdeck/protocol';
+import type { ServerMsg } from '@opendeck/protocol';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Hub } from '../src/core/hub.js';
 import { SessionRegistry } from '../src/core/session-registry.js';

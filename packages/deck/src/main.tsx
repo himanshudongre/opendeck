@@ -11,11 +11,11 @@ import { App } from './App.js';
 import { useDeck } from './state/store.js';
 
 // Debugging/E2E surface: lets a console or Playwright read the live store.
-(globalThis as Record<string, unknown>).__AGENTDECK_STORE__ = useDeck;
+(globalThis as Record<string, unknown>).__OPENDECK_STORE__ = useDeck;
 
 const container = document.getElementById('root');
 if (!container) {
-  throw new Error('AgentDeck: #root element missing from index.html');
+  throw new Error('OpenDeck: #root element missing from index.html');
 }
 
 createRoot(container).render(

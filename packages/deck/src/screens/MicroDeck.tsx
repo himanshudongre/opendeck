@@ -1,5 +1,5 @@
-import type { Session, SetEffortPayload } from '@agentdeck/protocol';
-import { Check, MessageCirclePlus, Mic, X, Zap } from 'lucide-react';
+import type { Session, SetEffortPayload } from '@opendeck/protocol';
+import { MessageCirclePlus, Mic } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { StatusDot, statusColorVar } from '../components/StatusDot.js';
@@ -11,9 +11,17 @@ import { playTick } from '../lib/sound.js';
 import { startVoice, voiceAvailability, type VoiceSession } from '../lib/voice.js';
 import { useDeck } from '../state/store.js';
 import { axesFor } from '../widgets/Dial.js';
-import { JOG_BINDINGS } from '../widgets/JogPad.js';
+import { keyIcon } from '../state/icons.js';
+import { DEFAULT_JOG_BINDINGS, type ActionKeyBinding } from '../state/layouts.js';
 
 const KEYS_PER_PAGE = 6;
+
+const ACCENT_TOKEN = {
+  working: 'working',
+  waiting: 'waiting',
+  done: 'done',
+  error: 'error',
+} as const;
 const SWEEP_DEG = 270;
 const START_DEG = -135;
 
@@ -270,6 +278,7 @@ function MicroKnob({ target }: { target: Session | undefined }) {
 /** The joystick: a glossy stick that tilts under the finger and flicks workflows. */
 function MicroStick({ targetId }: { targetId: string | undefined }) {
   const settings = useDeck((state) => state.settings);
+  const jog = useDeck((state) => state.layout.jog) ?? DEFAULT_JOG_BINDINGS;
   const reduced = useReducedMotion() ?? false;
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const origin = useRef<{ x: number; y: number } | undefined>(undefined);
@@ -284,7 +293,7 @@ function MicroStick({ targetId }: { targetId: string | undefined }) {
     controller.action({
       sessionId: targetId,
       kind: 'prompt_template',
-      args: { text: JOG_BINDINGS[direction].template },
+      args: { text: jog[direction].template },
     });
   };
 
@@ -438,11 +447,34 @@ export function MicroDeck() {
     controller.subscribe(id);
   };
 
+  // Three rebindable command caps; the fourth cap is always "open".
+  const layout = useDeck.getState().layout;
+  const commandKeys = layout.actionKeys.slice(0, 3);
+
+  const bindingArmed = (binding: ActionKeyBinding): boolean => {
+    if (binding.kind === 'approve' || binding.kind === 'deny') return pending !== undefined;
+    if (binding.kind === 'shell' || binding.kind === 'new_session') return true;
+    if (binding.kind === 'interrupt') return attention?.capabilities.includes('interrupt') === true;
+    return attention !== undefined;
+  };
+
+  const fireBinding = (binding: ActionKeyBinding): void => {
+    if ((binding.kind === 'approve' || binding.kind === 'deny') && pending) {
+      controller.respondPermission(pending.id, binding.kind);
+      return;
+    }
+    controller.action({
+      kind: binding.kind,
+      ...(attention === undefined ? {} : { sessionId: attention.id }),
+      ...(binding.args === undefined ? {} : { args: binding.args }),
+    });
+  };
+
   const lcdLine = attention
     ? pending
       ? `${attention.title} · approve ${pending.tool.name}?`
       : `${attention.title} · ${statusLabel(attention.status)}`
-    : 'no agents · run agent-deck --demo';
+    : 'no agents · run opendeck --demo';
   const lcdStats = attention
     ? `${formatTokens(attention.stats.inputTokens + attention.stats.outputTokens)} tok${
         attention.stats.costUsd !== undefined ? ` · ${formatCost(attention.stats.costUsd)}` : ''
@@ -495,7 +527,7 @@ export function MicroDeck() {
             aria-hidden
             className="silkscreen silkscreen-vert absolute left-1.5 top-1/2 -translate-y-1/2"
           >
-            agent-deck · 2026
+            opendeck · 2026
           </p>
           <p
             aria-hidden
@@ -577,31 +609,41 @@ export function MicroDeck() {
             </div>
           )}
 
-          {/* Row C: command keys */}
+          {/* Row C: command keys — driven by layout.actionKeys, so every
+              cap's icon and action is rebindable via layout JSON. */}
           <div className="mt-4 grid grid-cols-4 gap-3">
-            <CommandKey
-              label="Interrupt the selected agent"
-              disabled={!attention?.capabilities.includes('interrupt')}
-              onPress={() =>
-                attention && controller.action({ sessionId: attention.id, kind: 'interrupt' })
-              }
-            >
-              <Zap aria-hidden size={15} style={{ color: 'var(--st-waiting)' }} />
-            </CommandKey>
-            <CommandKey
-              label={pending ? `Approve ${pending.tool.name}` : 'Approve'}
-              disabled={pending === undefined}
-              onPress={() => pending && controller.respondPermission(pending.id, 'approve')}
-            >
-              <Check aria-hidden size={15} style={{ color: 'var(--st-done)' }} />
-            </CommandKey>
-            <CommandKey
-              label={pending ? `Deny ${pending.tool.name}` : 'Deny'}
-              disabled={pending === undefined}
-              onPress={() => pending && controller.respondPermission(pending.id, 'deny')}
-            >
-              <X aria-hidden size={15} style={{ color: 'var(--st-error)' }} />
-            </CommandKey>
+            {commandKeys.map((binding) => {
+              const Icon = keyIcon(binding.icon);
+              const accentVar =
+                binding.accent !== undefined
+                  ? `var(--st-${ACCENT_TOKEN[binding.accent]})`
+                  : 'var(--ink-2)';
+              const armed = bindingArmed(binding);
+              return (
+                <CommandKey
+                  key={binding.id}
+                  label={
+                    (binding.kind === 'approve' || binding.kind === 'deny') && pending
+                      ? `${binding.label} ${pending.tool.name}`
+                      : binding.label
+                  }
+                  disabled={!armed}
+                  onPress={() => fireBinding(binding)}
+                >
+                  {Icon ? (
+                    <Icon aria-hidden size={15} style={{ color: accentVar }} />
+                  ) : (
+                    <span
+                      aria-hidden
+                      className="font-data text-[10px]"
+                      style={{ color: accentVar }}
+                    >
+                      {binding.label.slice(0, 3)}
+                    </span>
+                  )}
+                </CommandKey>
+              );
+            })}
             <CommandKey
               label="Open the selected agent"
               disabled={attention === undefined}

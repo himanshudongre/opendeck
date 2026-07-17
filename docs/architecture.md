@@ -1,6 +1,6 @@
 # Architecture
 
-AgentDeck is one npm package (`agent-deck`) built from a pnpm monorepo of four
+OpenDeck is one npm package (`opendeck`) built from a pnpm monorepo of four
 workspaces plus an E2E project. The data flow is a single direction:
 
 ```mermaid
@@ -73,7 +73,7 @@ needs no API keys or installed CLIs.
 
 - LAN-bound by default, but every WS/REST call requires a paired-device
   credential; pairing tokens are one-time and expire in 10 minutes.
-- Credentials are stored sha256-hashed in `~/.agentdeck/devices.json` and
+- Credentials are stored sha256-hashed in `~/.opendeck/devices.json` and
   compared timing-safe; `agentdeck devices revoke <id>` kills one device.
 - `Origin` is checked at WS upgrade; pairing attempts are rate-limited.
 - Claude hook POSTs are accepted from loopback only.
@@ -83,14 +83,14 @@ needs no API keys or installed CLIs.
 
 ## Package map
 
-| Path                 | Role                                                                          |
-| -------------------- | ----------------------------------------------------------------------------- |
-| `packages/protocol`  | zod schemas + codecs; no runtime deps beyond zod                              |
-| `packages/hub`       | CLI + fastify + ws; adapters under `src/adapters/`; published as `agent-deck` |
-| `packages/deck`      | React 18 PWA; hand-built design system from SPEC §7 tokens                    |
-| `packages/simulator` | deterministic fleet for `--demo`, E2E, screenshots                            |
-| `e2e/`               | Playwright projects (iPhone 14 / iPad / desktop), latency + bundle gates      |
+| Path                 | Role                                                                        |
+| -------------------- | --------------------------------------------------------------------------- |
+| `packages/protocol`  | zod schemas + codecs; no runtime deps beyond zod                            |
+| `packages/hub`       | CLI + fastify + ws; adapters under `src/adapters/`; published as `opendeck` |
+| `packages/deck`      | React 18 PWA; hand-built design system from SPEC §7 tokens                  |
+| `packages/simulator` | deterministic fleet for `--demo`, E2E, screenshots                          |
+| `e2e/`               | Playwright projects (iPhone 14 / iPad / desktop), latency + bundle gates    |
 
-`@agentdeck/protocol` and `@agentdeck/simulator` are private; tsup bundles
+`@opendeck/protocol` and `@opendeck/simulator` are private; tsup bundles
 them into the published package, and the deck's built assets ship inside
-`dist/deck` so `npx agent-deck` is one artifact.
+`dist/deck` so `npx opendeck` is one artifact.

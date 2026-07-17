@@ -8,5 +8,5 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   // Private workspace packages ship inside the published bundle.
-  noExternal: ['@agentdeck/protocol', '@agentdeck/simulator'],
+  noExternal: ['@opendeck/protocol', '@opendeck/simulator'],
 });

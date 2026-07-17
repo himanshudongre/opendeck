@@ -76,7 +76,7 @@ export function GridScreen() {
                 <p className="mt-2 text-xs leading-relaxed text-ink-2">
                   Start one in your terminal, or run{' '}
                   <code className="font-data" style={{ color: 'var(--brass)' }}>
-                    agent-deck --demo
+                    opendeck --demo
                   </code>{' '}
                   to see the deck in motion.
                 </p>

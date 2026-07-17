@@ -1,9 +1,9 @@
-import type { ServerMsg } from '@agentdeck/protocol';
+import type { ServerMsg } from '@opendeck/protocol';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EventBus } from '../src/core/event-bus.js';
 import { Hub } from '../src/core/hub.js';
 import { logger, term } from '../src/logger.js';
-import { agentdeckHome } from '../src/paths.js';
+import { opendeckHome } from '../src/paths.js';
 import { runShellAction } from '../src/server/shell.js';
 import { makeSession, tempHome } from './helpers.js';
 
@@ -230,18 +230,18 @@ describe('logger and paths', () => {
     err.mockRestore();
   });
 
-  it('memoizes the pino instance under AGENTDECK_HOME', () => {
+  it('memoizes the pino instance under OPENDECK_HOME', () => {
     const restore = tempHome();
     expect(logger()).toBe(logger());
-    expect(agentdeckHome()).toBe(process.env.AGENTDECK_HOME);
+    expect(opendeckHome()).toBe(process.env.OPENDECK_HOME);
     restore();
   });
 
-  it('falls back to the home directory without AGENTDECK_HOME', () => {
-    const previous = process.env.AGENTDECK_HOME;
-    delete process.env.AGENTDECK_HOME;
-    expect(agentdeckHome()).toContain('.agentdeck');
-    if (previous !== undefined) process.env.AGENTDECK_HOME = previous;
+  it('falls back to the home directory without OPENDECK_HOME', () => {
+    const previous = process.env.OPENDECK_HOME;
+    delete process.env.OPENDECK_HOME;
+    expect(opendeckHome()).toContain('.opendeck');
+    if (previous !== undefined) process.env.OPENDECK_HOME = previous;
   });
 });
 

@@ -1,4 +1,4 @@
-import { encodeServerMsg, serverMsg, type ServerMsg } from '@agentdeck/protocol';
+import { encodeServerMsg, serverMsg, type ServerMsg } from '@opendeck/protocol';
 import { describe, expect, it } from 'vitest';
 import {
   BACKOFF_MAX_MS,

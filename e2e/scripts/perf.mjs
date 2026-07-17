@@ -47,7 +47,7 @@ async function latencyGate() {
     process.execPath,
     [cliPath, '--demo', '--localhost-only', '--no-auth', '--port', String(PORT)],
     {
-      env: { ...process.env, AGENTDECK_HOME: join(here, '..', '.state', 'perf-home') },
+      env: { ...process.env, OPENDECK_HOME: join(here, '..', '.state', 'perf-home') },
       stdio: 'ignore',
     },
   );

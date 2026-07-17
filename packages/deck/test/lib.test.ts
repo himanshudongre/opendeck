@@ -150,9 +150,9 @@ describe('pairing', () => {
   it('round-trips and validates stored pairing', () => {
     savePairing({ deviceId: 'd', credential: 'c', hubId: 'h' });
     expect(readPairing()).toEqual({ deviceId: 'd', credential: 'c', hubId: 'h' });
-    localStorage.setItem('agentdeck.pairing', '{"deviceId": 1}');
+    localStorage.setItem('opendeck.pairing', '{"deviceId": 1}');
     expect(readPairing()).toBeUndefined();
-    localStorage.setItem('agentdeck.pairing', 'not json');
+    localStorage.setItem('opendeck.pairing', 'not json');
     expect(readPairing()).toBeUndefined();
   });
 });

@@ -1,4 +1,4 @@
-import type { ActionKind } from '@agentdeck/protocol';
+import type { ActionKind } from '@opendeck/protocol';
 
 export type LayoutPreset =
   'phone-portrait' | 'phone-landscape' | 'tablet' | 'desktop-strip' | 'micro';
@@ -11,7 +11,30 @@ export interface ActionKeyBinding {
   args?: Record<string, string | number | boolean>;
   /** Optional per-key accent token name (a status color, never brass). */
   accent?: 'working' | 'waiting' | 'done' | 'error';
+  /** Icon name from the curated set in state/icons.ts (micro command keys). */
+  icon?: string;
 }
+
+export type JogDirection = 'up' | 'down' | 'left' | 'right';
+
+export interface JogBinding {
+  label: string;
+  template: string;
+}
+
+/** Flick-to-workflow defaults; every direction is rebindable in layout JSON. */
+export const DEFAULT_JOG_BINDINGS: Record<JogDirection, JogBinding> = {
+  up: { label: 'Tests', template: 'Run the failing tests and fix them.' },
+  right: {
+    label: 'Diff',
+    template: 'Review the current diff and list problems before anything else.',
+  },
+  down: {
+    label: 'Commit',
+    template: 'Commit the current work with a conventional commit message.',
+  },
+  left: { label: 'Status', template: 'Explain what you are doing right now and what remains.' },
+};
 
 export interface WidgetVisibility {
   statBar: boolean;
@@ -27,18 +50,21 @@ export interface LayoutConfig {
   tileSize: TileSize;
   widgets: WidgetVisibility;
   actionKeys: ActionKeyBinding[];
+  /** Absent in older saved layouts; readers fall back to the defaults. */
+  jog?: Record<JogDirection, JogBinding>;
 }
 
 export const DEFAULT_ACTION_KEYS: ActionKeyBinding[] = [
-  { id: 'approve', label: 'Approve', kind: 'approve', accent: 'done' },
-  { id: 'deny', label: 'Deny', kind: 'deny', accent: 'error' },
-  { id: 'interrupt', label: 'Interrupt', kind: 'interrupt', accent: 'waiting' },
+  { id: 'interrupt', label: 'Interrupt', kind: 'interrupt', accent: 'waiting', icon: 'zap' },
+  { id: 'approve', label: 'Approve', kind: 'approve', accent: 'done', icon: 'check' },
+  { id: 'deny', label: 'Deny', kind: 'deny', accent: 'error', icon: 'x' },
   {
     id: 'run-tests',
     label: 'Run tests',
     kind: 'prompt_template',
     args: { text: 'Run the test suite and fix any failures you find.' },
     accent: 'working',
+    icon: 'test-tube',
   },
 ];
 

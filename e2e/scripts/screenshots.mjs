@@ -37,9 +37,9 @@ function startHub(speed) {
     {
       env: {
         ...process.env,
-        AGENTDECK_HOME: join(scratch, `home-${String(speed)}`),
-        AGENTDECK_SIM_SPEED: String(speed),
-        AGENTDECK_SIM_SEED: '7',
+        OPENDECK_HOME: join(scratch, `home-${String(speed)}`),
+        OPENDECK_SIM_SPEED: String(speed),
+        OPENDECK_SIM_SEED: '7',
       },
       stdio: 'ignore',
     },
@@ -66,6 +66,28 @@ async function screenshots() {
       isMobile: true,
       hasTouch: true,
     });
+    await phone.addInitScript(() => {
+      localStorage.setItem(
+        'opendeck.layout',
+        JSON.stringify({
+          preset: 'phone-portrait',
+          tileSize: 'M',
+          widgets: {
+            statBar: true,
+            ticker: true,
+            actionKeys: true,
+            dial: true,
+            jogPad: false,
+            voiceKey: true,
+          },
+          actionKeys: [
+            { id: 'approve', label: 'Approve', kind: 'approve', accent: 'done' },
+            { id: 'deny', label: 'Deny', kind: 'deny', accent: 'error' },
+            { id: 'interrupt', label: 'Interrupt', kind: 'interrupt', accent: 'waiting' },
+          ],
+        }),
+      );
+    });
     const phonePage = await phone.newPage();
     await phonePage.goto(URL);
     await waitForTileText(phonePage, /fix flaky auth test/, 'needs approval');
@@ -89,7 +111,7 @@ async function screenshots() {
     });
     await micro.addInitScript(() => {
       localStorage.setItem(
-        'agentdeck.layout',
+        'opendeck.layout',
         JSON.stringify({
           preset: 'micro',
           tileSize: 'M',
@@ -122,7 +144,7 @@ async function screenshots() {
     });
     await tablet.addInitScript(() => {
       localStorage.setItem(
-        'agentdeck.settings',
+        'opendeck.settings',
         JSON.stringify({
           themeName: 'workshop',
           sound: 'clicky',
@@ -132,7 +154,7 @@ async function screenshots() {
         }),
       );
       localStorage.setItem(
-        'agentdeck.layout',
+        'opendeck.layout',
         JSON.stringify({
           preset: 'tablet',
           tileSize: 'M',
@@ -180,16 +202,13 @@ async function demoGif() {
     const page = await context.newPage();
     await page.goto(URL);
 
-    // Watch the fleet come alive, approve the hero permission, return.
-    await waitForTileText(page, /fix flaky auth test/, 'needs approval', 40_000);
-    await page.waitForTimeout(1500);
-    await page.getByRole('button', { name: /fix flaky auth test/ }).click();
-    await page.getByText('Edit wants to run').waitFor();
-    await page.waitForTimeout(2200);
+    // Micro mode is the default: watch the LEDs come alive, approve the
+    // hero permission with the physical check key, watch the agent go green.
+    await page.getByRole('slider').waitFor({ timeout: 40_000 });
+    await page.getByText(/approve Edit\?/).waitFor({ timeout: 40_000 });
+    await page.waitForTimeout(1800);
     await page.getByRole('button', { name: 'Approve Edit' }).click();
-    await page.waitForTimeout(3500);
-    await page.getByRole('button', { name: 'Back to the grid' }).click();
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(4500);
 
     await context.close();
     const video = page.video();

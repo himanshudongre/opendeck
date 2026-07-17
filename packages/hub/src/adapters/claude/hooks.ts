@@ -161,7 +161,7 @@ export class ClaudeHooksGateway {
         body: {
           hookSpecificOutput: {
             hookEventName: 'PermissionRequest',
-            decision: { behavior: 'deny', message: 'Denied from the AgentDeck deck.' },
+            decision: { behavior: 'deny', message: 'Denied from the OpenDeck deck.' },
           },
         },
       };

@@ -1,20 +1,21 @@
-<h1 align="center">▲ AgentDeck</h1>
+<h1 align="center">▲ OpenDeck</h1>
+
+<p align="center"><strong>An open-source digital micropad for agentic work.</strong></p>
 
 <p align="center">
-  A physical-feeling command deck for AI coding agents, made of software.<br />
-  Turn any phone, tablet, or spare screen into a zero-lag control surface for
-  Claude Code and Codex — glanceable live status, tactile controls, one-tap
-  approvals. No hardware to buy.
+  Turn any phone, tablet, or spare screen into a zero-lag, physical-feeling
+  control deck for Claude Code and Codex — glanceable live status, tactile
+  controls, one-tap approvals. No hardware to buy.
 </p>
 
 <p align="center">
-  <img src="docs/demo.gif" alt="AgentDeck demo: a phone-sized deck of glowing agent tiles; a permission card with a real diff is approved with one tap and the agent runs to green" width="390" />
+  <img src="docs/demo.gif" alt="OpenDeck demo: a phone-sized deck of glowing agent tiles; a permission card with a real diff is approved with one tap and the agent runs to green" width="390" />
 </p>
 
 ## 30-second quickstart
 
 ```sh
-npx agent-deck
+npx opendeck
 ```
 
 Scan the QR code the hub prints with your phone. That's it — the page pairs
@@ -22,11 +23,11 @@ itself, installs as a PWA if you want it to, and your agents show up as
 backlit tiles. No agents running yet? See the whole thing in motion first:
 
 ```sh
-npx agent-deck --demo
+npx opendeck --demo
 ```
 
-Starting is idempotent — a new `agent-deck` politely takes the port over
-from an old one — and `agent-deck stop` / `agent-deck status` manage the
+Starting is idempotent — a new `opendeck` politely takes the port over
+from an old one — and `opendeck stop` / `opendeck status` manage the
 running hub from any terminal.
 
 ## Why this instead of plastic
@@ -34,7 +35,7 @@ running hub from any terminal.
 OpenAI's Codex Micro sells two real things: ambient glanceable status and
 one-press tactile control. It's $230, it's six keys, and it only speaks Codex.
 
-|             | AgentDeck                                                                                                                                   | Codex Micro            |
+|             | OpenDeck                                                                                                                                    | Codex Micro            |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
 | Price       | $0, MIT-licensed                                                                                                                            | $230, limited run      |
 | Agents      | Unlimited tiles                                                                                                                             | 6 RGB keys             |
@@ -74,7 +75,7 @@ flowchart LR
     WS -- "LAN · :3325 http · :3326 https" --> P["phone / tablet / spare screen<br/>(installable PWA)"]
 ```
 
-One `npx agent-deck` process is the hub: adapters normalize each harness into
+One `npx opendeck` process is the hub: adapters normalize each harness into
 one `Session` shape, every change fans out over WebSocket, and a replay
 buffer means a phone that slept through twenty status changes replays all
 twenty on reconnect — the deck is never silently stale. The deck itself is a
@@ -91,9 +92,9 @@ pretty-printed input and a unified diff preview for file edits.
 **Claude Code, observed** — your own terminal sessions on the deck:
 
 ```sh
-agent-deck connect claude            # writes hooks to ~/.claude/settings.json
-agent-deck connect claude --project  # or just this project's .claude/settings.json
-agent-deck disconnect claude         # removes exactly what connect added
+opendeck connect claude            # writes hooks to ~/.claude/settings.json
+opendeck connect claude --project  # or just this project's .claude/settings.json
+opendeck disconnect claude         # removes exactly what connect added
 ```
 
 While the hub is running, terminal sessions report status over local HTTP
@@ -104,20 +105,20 @@ answers within five minutes), the terminal prompt behaves exactly as before.
 **Codex, managed** — sessions run `codex exec --json` under the hood:
 streamed JSONL becomes live tiles, the dial maps to
 `model_reasoning_effort`, follow-up prompts resume the same thread, and
-sandbox policy presets are selectable per session. `agent-deck` verifies the
+sandbox policy presets are selectable per session. `opendeck` verifies the
 installed Codex supports `--json` at startup and degrades honestly if not.
 
 ## Configuration
 
-Everything lives in `~/.agentdeck/` — hand-editable JSON, validated with
+Everything lives in `~/.opendeck/` — hand-editable JSON, validated with
 friendly errors:
 
-| File           | What it holds                                                          |
-| -------------- | ---------------------------------------------------------------------- |
-| `config.json`  | `port`, `httpsPort`, `bind`, default theme, shell actions, templates   |
-| `devices.json` | paired device credentials (hashed) — `agent-deck devices list\|revoke` |
-| `cert/`        | the self-signed cert for the HTTPS lane                                |
-| `logs/`        | hub logs (pino)                                                        |
+| File           | What it holds                                                        |
+| -------------- | -------------------------------------------------------------------- |
+| `config.json`  | `port`, `httpsPort`, `bind`, default theme, shell actions, templates |
+| `devices.json` | paired device credentials (hashed) — `opendeck devices list\|revoke` |
+| `cert/`        | the self-signed cert for the HTTPS lane                              |
+| `logs/`        | hub logs (pino)                                                      |
 
 Flags: `--demo`, `--port <n>`, `--localhost-only`, `--no-auth` (loud
 warning; trusted networks only).
@@ -138,6 +139,20 @@ secure origins, so the hub also serves HTTPS on `:3326` with a generated
 self-signed cert. The default QR uses plain HTTP (zero friction; wake-lock
 falls back to a silent looping video). Settings → Enable voice walks the
 one-time cert trust.
+
+## Make it yours
+
+The deck opens in **Micro mode**: the whole surface rendered as one device —
+LED agent keys, a knurled reasoning knob, a workflow joystick, command keys
+and a push-to-talk bar. Long-press the faceplate to switch layouts (grid,
+tablet, desktop strip) or rebind anything:
+
+- **Command keys** are data: each cap is `{ icon, label, kind, args }` in
+  layout JSON, with icons from a curated set (`packages/deck/src/state/icons.ts`).
+- **Joystick workflows** are prompt templates per flick direction — swap
+  "review the diff" for whatever your team actually repeats.
+- **Themes** are token JSON with a live editor; **layouts** copy/paste as
+  JSON from Settings, so a good configuration is a gist away.
 
 ## Contributing
 

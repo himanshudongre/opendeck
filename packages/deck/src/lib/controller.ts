@@ -1,4 +1,4 @@
-import type { Action, PermissionResolution, SetEffortPayload } from '@agentdeck/protocol';
+import type { Action, PermissionResolution, SetEffortPayload } from '@opendeck/protocol';
 import { useDeck } from '../state/store.js';
 import { DeckConnection, type Credentials } from './connection.js';
 import {

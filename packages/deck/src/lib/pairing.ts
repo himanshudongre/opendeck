@@ -1,6 +1,6 @@
 import type { Credentials } from './connection.js';
 
-const STORAGE_KEY = 'agentdeck.pairing';
+const STORAGE_KEY = 'opendeck.pairing';
 
 export interface StoredPairing extends Credentials {
   hubId: string;

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { deckState, hubs } from '../helpers.js';
+import { deckState, hubs, openDeck } from '../helpers.js';
 
 /**
  * Simulator-driven deck behavior on the open hub. Runs on every viewport
@@ -8,7 +8,7 @@ import { deckState, hubs } from '../helpers.js';
  */
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(hubs().openUrl);
+  await openDeck(page, hubs().openUrl);
 });
 
 test('tiles track the scripted fleet statuses', async ({ page }) => {
@@ -57,7 +57,7 @@ test('voice key advertises hold-to-talk on secure contexts', async ({ page }) =>
 test('reduced motion removes the Deskglow and pulses', async ({ browser }) => {
   const context = await browser.newContext({ reducedMotion: 'reduce' });
   const page = await context.newPage();
-  await page.goto(hubs().openUrl);
+  await openDeck(page, hubs().openUrl);
   await expect(page.getByRole('button', { name: /fix flaky auth test/ })).toBeVisible();
 
   const glowDisplay = await page.evaluate(() => {

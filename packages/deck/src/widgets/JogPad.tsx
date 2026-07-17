@@ -2,28 +2,8 @@ import { useRef, useState } from 'react';
 import { controller } from '../lib/controller.js';
 import { hapticTick } from '../lib/haptics.js';
 import { playTick } from '../lib/sound.js';
+import { DEFAULT_JOG_BINDINGS, type JogDirection } from '../state/layouts.js';
 import { useDeck } from '../state/store.js';
-
-type JogDirection = 'up' | 'down' | 'left' | 'right';
-
-interface JogBinding {
-  label: string;
-  template: string;
-}
-
-/** Four-direction flick pad mapped to prompt-template workflows (SPEC §6). */
-export const JOG_BINDINGS: Record<JogDirection, JogBinding> = {
-  up: { label: 'Tests', template: 'Run the failing tests and fix them.' },
-  right: {
-    label: 'Diff',
-    template: 'Review the current diff and list problems before anything else.',
-  },
-  down: {
-    label: 'Commit',
-    template: 'Commit the current work with a conventional commit message.',
-  },
-  left: { label: 'Status', template: 'Explain what you are doing right now and what remains.' },
-};
 
 const FLICK_THRESHOLD_PX = 24;
 
@@ -32,6 +12,7 @@ export function JogPad() {
   const sessions = useDeck((state) => state.sessions);
   const order = useDeck((state) => state.order);
   const settings = useDeck((state) => state.settings);
+  const jog = useDeck((state) => state.layout.jog) ?? DEFAULT_JOG_BINDINGS;
   const start = useRef<{ x: number; y: number } | undefined>(undefined);
   const [lastFired, setLastFired] = useState<JogDirection | undefined>(undefined);
 
@@ -49,7 +30,7 @@ export function JogPad() {
     controller.action({
       sessionId: target,
       kind: 'prompt_template',
-      args: { text: JOG_BINDINGS[direction].template },
+      args: { text: jog[direction].template },
     });
   };
 
@@ -84,7 +65,7 @@ export function JogPad() {
           className={`font-data absolute text-[8px] uppercase tracking-wide ${position}`}
           style={{ color: lastFired === direction ? 'var(--brass)' : 'var(--ink-3)' }}
         >
-          {JOG_BINDINGS[direction].label}
+          {jog[direction].label}
         </span>
       ))}
       <span

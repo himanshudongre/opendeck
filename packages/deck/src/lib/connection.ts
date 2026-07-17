@@ -5,7 +5,7 @@ import {
   type ClientMsgType,
   type ClientPayload,
   type ServerMsg,
-} from '@agentdeck/protocol';
+} from '@opendeck/protocol';
 
 /**
  * The deck side of SPEC §3.2: heartbeat every 5 s, dead after 12 s of

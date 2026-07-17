@@ -1,5 +1,5 @@
 {
-  "name": "@agentdeck/e2e",
+  "name": "@opendeck/e2e",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
-    "@agentdeck/protocol": "workspace:*",
+    "@opendeck/protocol": "workspace:*",
     "@types/node": "^22.10.0",
     "@types/ws": "^8.18.1",
     "ws": "^8.21.1"

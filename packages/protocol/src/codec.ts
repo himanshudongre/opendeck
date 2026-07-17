@@ -59,7 +59,7 @@ function decode<T>(raw: unknown, schema: z.ZodType<T>): DecodeResult<T> {
     return {
       ok: false,
       reason: 'version_mismatch',
-      message: `Protocol version ${probe.data.v} does not match this side's version ${PROTOCOL_VERSION}. Update the older of hub and deck — reinstalling with \`npx agent-deck@latest\` refreshes both.`,
+      message: `Protocol version ${probe.data.v} does not match this side's version ${PROTOCOL_VERSION}. Update the older of hub and deck — reinstalling with \`npx opendeck@latest\` refreshes both.`,
     };
   }
 

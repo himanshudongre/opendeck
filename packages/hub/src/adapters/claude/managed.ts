@@ -247,7 +247,7 @@ export class ClaudeManagedSession {
     const decision = await resolution;
     if (decision === 'deny') {
       this.hub.setStatus(this.id, 'working');
-      return { behavior: 'deny', message: 'Denied from the AgentDeck deck.' };
+      return { behavior: 'deny', message: 'Denied from the OpenDeck deck.' };
     }
     this.hub.setStatus(this.id, 'working');
     if (decision === 'always_allow' && options.suggestions !== undefined) {

@@ -1,4 +1,4 @@
-import { serverMsg, type ServerMsg } from '@agentdeck/protocol';
+import { serverMsg, type ServerMsg } from '@opendeck/protocol';
 import { describe, expect, it } from 'vitest';
 import { ReplayBuffer } from '../src/core/replay-buffer.js';
 

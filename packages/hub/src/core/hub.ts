@@ -12,7 +12,7 @@ import {
   type Session,
   type SessionStats,
   type SessionStatus,
-} from '@agentdeck/protocol';
+} from '@opendeck/protocol';
 import type { CustomAction } from '../config.js';
 import { newId } from '../ids.js';
 import { EventBus } from './event-bus.js';
@@ -327,7 +327,7 @@ export class Hub {
           return {
             ok: false,
             code: 'unsupported',
-            message: 'Shell actions must be defined in ~/.agentdeck/config.json.',
+            message: 'Shell actions must be defined in ~/.opendeck/config.json.',
           };
         }
         if (action.args?.confirmed !== true) {

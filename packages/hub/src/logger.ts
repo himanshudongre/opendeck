@@ -1,6 +1,6 @@
 /*
  * The only module allowed to talk to stdout/stderr. Structured logs go to
- * pino (file under ~/.agentdeck/logs plus pretty stderr in dev); human-facing
+ * pino (file under ~/.opendeck/logs plus pretty stderr in dev); human-facing
  * terminal output (banner, QR, pairing notices) goes through `term`.
  */
 import { mkdirSync } from 'node:fs';
@@ -15,7 +15,7 @@ export function logger(): Logger {
     const dir = logsDir();
     mkdirSync(dir, { recursive: true });
     root = pino(
-      { level: process.env.AGENTDECK_LOG_LEVEL ?? 'info' },
+      { level: process.env.OPENDECK_LOG_LEVEL ?? 'info' },
       pino.destination({ dest: join(dir, 'hub.log'), mkdir: true, sync: false }),
     );
   }

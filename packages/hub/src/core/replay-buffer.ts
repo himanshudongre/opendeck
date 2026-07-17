@@ -1,4 +1,4 @@
-import type { ServerMsg } from '@agentdeck/protocol';
+import type { ServerMsg } from '@opendeck/protocol';
 
 interface SessionRing {
   entries: ServerMsg[];

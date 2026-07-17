@@ -1,5 +1,5 @@
 {
-  "name": "@agentdeck/root",
+  "name": "@opendeck/root",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.13.1",
@@ -7,14 +7,14 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm --filter agent-deck dev",
+    "dev": "pnpm --filter opendeck dev",
     "build": "pnpm -r build",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r --if-present test",
-    "e2e": "pnpm --filter @agentdeck/e2e e2e",
-    "perf": "pnpm --filter @agentdeck/e2e perf",
+    "e2e": "pnpm --filter @opendeck/e2e e2e",
+    "perf": "pnpm --filter @opendeck/e2e perf",
     "changeset": "changeset",
     "start": "node packages/hub/dist/cli.js",
     "stop": "node packages/hub/dist/cli.js stop",
@@ -27,6 +27,6 @@
     "prettier": "^3.9.5",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.64.0",
-    "agent-deck": "workspace:*"
+    "opendeck": "workspace:*"
   }
 }

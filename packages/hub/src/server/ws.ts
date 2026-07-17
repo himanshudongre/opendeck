@@ -1,7 +1,7 @@
 import type { IncomingMessage, Server as HttpServer } from 'node:http';
 import type { Server as HttpsServer } from 'node:https';
 import type { Duplex } from 'node:stream';
-import { decodeClientMsg, encodeServerMsg, serverMsg, type ServerMsg } from '@agentdeck/protocol';
+import { decodeClientMsg, encodeServerMsg, serverMsg, type ServerMsg } from '@opendeck/protocol';
 import { WebSocketServer, type WebSocket } from 'ws';
 import type { Hub } from '../core/hub.js';
 import { logger } from '../logger.js';

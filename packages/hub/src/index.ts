@@ -75,4 +75,4 @@ export {
   truncate,
 } from './adapters/pretty.js';
 export { hubSink } from './adapters/sink.js';
-export { agentdeckHome, configPath, devicesPath, certDir, logsDir } from './paths.js';
+export { opendeckHome, configPath, devicesPath, certDir, logsDir } from './paths.js';

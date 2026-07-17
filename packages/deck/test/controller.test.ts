@@ -129,6 +129,6 @@ describe('controller', () => {
     await controller.init();
     controller.unpair();
     expect(useDeck.getState().connection).toBe('unpaired');
-    expect(localStorage.getItem('agentdeck.pairing')).toBeNull();
+    expect(localStorage.getItem('opendeck.pairing')).toBeNull();
   });
 });

@@ -15,12 +15,12 @@ let previousClaudeHome: string | undefined;
 
 beforeEach(() => {
   restoreHome = tempHome();
-  previousClaudeHome = process.env.AGENTDECK_CLAUDE_HOME;
-  process.env.AGENTDECK_CLAUDE_HOME = join(process.env.AGENTDECK_HOME ?? '', 'claude-home');
+  previousClaudeHome = process.env.OPENDECK_CLAUDE_HOME;
+  process.env.OPENDECK_CLAUDE_HOME = join(process.env.OPENDECK_HOME ?? '', 'claude-home');
 });
 afterEach(() => {
-  if (previousClaudeHome === undefined) delete process.env.AGENTDECK_CLAUDE_HOME;
-  else process.env.AGENTDECK_CLAUDE_HOME = previousClaudeHome;
+  if (previousClaudeHome === undefined) delete process.env.OPENDECK_CLAUDE_HOME;
+  else process.env.OPENDECK_CLAUDE_HOME = previousClaudeHome;
   restoreHome();
 });
 
@@ -28,7 +28,7 @@ function readSettings(path: string): Record<string, unknown> {
   return JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>;
 }
 
-describe('agent-deck connect claude', () => {
+describe('opendeck connect claude', () => {
   it('writes hooks for every lifecycle event plus the waiting permission hook', () => {
     const result = connectClaude({ scope: 'user', port: 3325 });
     expect(result.changed).toBe(true);
@@ -62,7 +62,7 @@ describe('agent-deck connect claude', () => {
     expect(readFileSync(second.path, 'utf8')).toBe(first);
   });
 
-  it('replaces stale agentdeck hooks when the port changes', () => {
+  it('replaces stale opendeck hooks when the port changes', () => {
     connectClaude({ scope: 'user', port: 3325 });
     const result = connectClaude({ scope: 'user', port: 4000 });
     expect(result.changed).toBe(true);
@@ -111,7 +111,7 @@ describe('agent-deck connect claude', () => {
   });
 
   it('supports project scope', () => {
-    const projectDir = join(process.env.AGENTDECK_HOME ?? '', 'my-project');
+    const projectDir = join(process.env.OPENDECK_HOME ?? '', 'my-project');
     mkdirSync(projectDir, { recursive: true });
     const result = connectClaude({ scope: 'project', port: 3325, cwd: projectDir });
     expect(result.path).toBe(join(projectDir, '.claude', 'settings.json'));

@@ -1,4 +1,4 @@
-import { serverMsg, type Session } from '@agentdeck/protocol';
+import { serverMsg, type Session } from '@opendeck/protocol';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/App.js';
@@ -30,6 +30,7 @@ function makeSession(overrides: Partial<Session> = {}): Session {
 
 beforeEach(() => {
   useDeck.getState().reset();
+  useDeck.getState().setLayoutPreset('phone-portrait');
   useDeck.setState({ connection: 'connected' });
 });
 

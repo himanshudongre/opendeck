@@ -1,4 +1,4 @@
-import type { Session, SetEffortPayload } from '@agentdeck/protocol';
+import type { Session, SetEffortPayload } from '@opendeck/protocol';
 import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { controller } from '../lib/controller.js';

@@ -4,7 +4,7 @@ import type {
   Session,
   SessionStats,
   SessionStatus,
-} from '@agentdeck/protocol';
+} from '@opendeck/protocol';
 import type { SimHost, SimSessionControls } from './host.js';
 import { mulberry32 } from './prng.js';
 
@@ -53,7 +53,7 @@ interface SessionRuntime {
 
 /**
  * Drives a deterministic scripted fleet against a SimHost (SPEC §4.4).
- * Load-bearing: `agent-deck --demo`, Playwright E2E, and the README GIF all
+ * Load-bearing: `opendeck --demo`, Playwright E2E, and the README GIF all
  * run on this.
  */
 export class SimulatorFleet {

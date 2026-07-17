@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { deckState, hubSnapshot, hubs } from '../helpers.js';
+import { deckState, hubSnapshot, hubs, openDeck } from '../helpers.js';
 
 /**
  * THE reconnect test (SPEC §9): kill the network mid-scenario, let the fleet
@@ -9,7 +9,7 @@ import { deckState, hubSnapshot, hubs } from '../helpers.js';
 test.describe('reconnect', () => {
   test('a dropped socket resumes with zero missed events', async ({ page, context }) => {
     const { openUrl } = hubs();
-    await page.goto(openUrl);
+    await openDeck(page, openUrl);
     await expect(page.getByRole('status', { name: /Connection:/ })).toHaveAttribute(
       'aria-label',
       'Connection: connected',

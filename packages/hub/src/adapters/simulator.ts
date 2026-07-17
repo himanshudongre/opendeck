@@ -1,4 +1,4 @@
-import { SimulatorFleet, demoFleet, type SimHost } from '@agentdeck/simulator';
+import { SimulatorFleet, demoFleet, type SimHost } from '@opendeck/simulator';
 import type { Hub } from '../core/hub.js';
 import { logger } from '../logger.js';
 
@@ -8,7 +8,7 @@ export interface DemoOptions {
 }
 
 /**
- * Bridges the scripted fleet onto the hub: `agent-deck --demo`. The simulator
+ * Bridges the scripted fleet onto the hub: `opendeck --demo`. The simulator
  * knows nothing about the hub; this glue is the SimHost implementation.
  */
 export function startDemoFleet(hub: Hub, options: DemoOptions = {}): SimulatorFleet {

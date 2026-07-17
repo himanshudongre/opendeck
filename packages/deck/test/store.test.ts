@@ -1,4 +1,4 @@
-import { serverMsg, type Session } from '@agentdeck/protocol';
+import { serverMsg, type Session } from '@opendeck/protocol';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { aggregateStatus, useDeck } from '../src/state/store.js';
 
@@ -222,13 +222,13 @@ describe('local state actions', () => {
 
   it('persists settings and layout to localStorage', () => {
     useDeck.getState().updateSettings({ sound: 'off', haptics: false });
-    expect(JSON.parse(localStorage.getItem('agentdeck.settings') ?? '{}')).toMatchObject({
+    expect(JSON.parse(localStorage.getItem('opendeck.settings') ?? '{}')).toMatchObject({
       sound: 'off',
       haptics: false,
     });
     useDeck.getState().setLayoutPreset('tablet');
     useDeck.getState().setTileSize('L');
-    expect(JSON.parse(localStorage.getItem('agentdeck.layout') ?? '{}')).toMatchObject({
+    expect(JSON.parse(localStorage.getItem('opendeck.layout') ?? '{}')).toMatchObject({
       preset: 'tablet',
       tileSize: 'L',
     });

@@ -7,7 +7,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { ServerMsg, Session, SessionStatus } from '@agentdeck/protocol';
+import type { ServerMsg, Session, SessionStatus } from '@opendeck/protocol';
 import { describe, expect, it } from 'vitest';
 import { Hub } from '../src/core/hub.js';
 

@@ -1,5 +1,5 @@
 {
-  "name": "@agentdeck/simulator",
+  "name": "@opendeck/simulator",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
-    "@agentdeck/protocol": "workspace:*"
+    "@opendeck/protocol": "workspace:*"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.10",

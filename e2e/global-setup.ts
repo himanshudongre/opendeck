@@ -29,9 +29,9 @@ function startHubProcess(
   const child = spawn(process.execPath, [cliPath, ...args], {
     env: {
       ...process.env,
-      AGENTDECK_HOME: home,
-      AGENTDECK_SIM_SPEED: '12',
-      AGENTDECK_SIM_SEED: '7',
+      OPENDECK_HOME: home,
+      OPENDECK_SIM_SPEED: '12',
+      OPENDECK_SIM_SEED: '7',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });

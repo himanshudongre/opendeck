@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import fastifyStatic from '@fastify/static';
-import { PROTOCOL_VERSION } from '@agentdeck/protocol';
+import { PROTOCOL_VERSION } from '@opendeck/protocol';
 import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import type { Hub } from '../core/hub.js';
@@ -18,7 +18,7 @@ export interface HttpDeps {
   onPaired?: (deviceName: string) => void;
   /** Claude Code hook POSTs land here (observed sessions, SPEC §4.1). */
   claudeHooks?: (payload: unknown) => Promise<HookGatewayResponse>;
-  /** Loopback-only graceful shutdown (`agent-deck stop`, start takeover). */
+  /** Loopback-only graceful shutdown (`opendeck stop`, start takeover). */
   onShutdownRequest?: () => void;
 }
 
@@ -34,22 +34,22 @@ const PairBodySchema = z.object({
 
 export function authenticateRequest(req: FastifyRequest, deps: HttpDeps): boolean {
   if (!deps.authRequired) return true;
-  const deviceId = req.headers['x-agentdeck-device'];
-  const credential = req.headers['x-agentdeck-credential'];
+  const deviceId = req.headers['x-opendeck-device'];
+  const credential = req.headers['x-opendeck-credential'];
   if (typeof deviceId !== 'string' || typeof credential !== 'string') return false;
   return deps.devices.authenticate(deviceId, credential) !== undefined;
 }
 
 const MISSING_DECK_PAGE = `<!doctype html>
 <html lang="en">
-  <head><meta charset="utf-8" /><title>AgentDeck</title></head>
+  <head><meta charset="utf-8" /><title>OpenDeck</title></head>
   <body style="font-family: system-ui; background: #0e0f12; color: #e9ebee; display: grid; place-items: center; min-height: 100vh; margin: 0">
     <main style="max-width: 32rem; padding: 2rem">
       <h1 style="font-size: 1.25rem">Deck assets not found</h1>
       <p style="color: #9ba1ac">
         This hub is running from a source checkout without a deck build.
         Run <code>pnpm build</code> in the repository, then restart the hub.
-        Installed via npm? Reinstall with <code>npx agent-deck@latest</code>.
+        Installed via npm? Reinstall with <code>npx opendeck@latest</code>.
       </p>
     </main>
   </body>

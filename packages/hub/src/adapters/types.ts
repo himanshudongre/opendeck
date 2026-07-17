@@ -1,4 +1,4 @@
-import type { Harness } from '@agentdeck/protocol';
+import type { Harness } from '@opendeck/protocol';
 
 export interface DetectResult {
   installed: boolean;

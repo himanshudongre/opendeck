@@ -48,7 +48,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm --filter @agentdeck/e2e exec playwright install --with-deps chromium
+      - run: pnpm --filter @opendeck/e2e exec playwright install --with-deps chromium
       - run: pnpm e2e
       - run: pnpm perf
       - uses: actions/upload-artifact@v4

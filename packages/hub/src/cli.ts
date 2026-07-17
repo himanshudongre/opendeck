@@ -100,13 +100,13 @@ async function run(flags: RunFlags): Promise<void> {
           return;
         }
       } else {
-        term.error(`The hub on port ${requestedPort} did not hand over. Try \`agent-deck stop\`.`);
+        term.error(`The hub on port ${requestedPort} did not hand over. Try \`opendeck stop\`.`);
         process.exitCode = 1;
         return;
       }
     } else if (portBusy) {
       term.error(
-        `Port ${requestedPort} is in use by something that isn't an AgentDeck hub. Stop it, or start with --port <n>.`,
+        `Port ${requestedPort} is in use by something that isn't an OpenDeck hub. Stop it, or start with --port <n>.`,
       );
       process.exitCode = 1;
       return;
@@ -120,12 +120,12 @@ async function run(flags: RunFlags): Promise<void> {
   const demo = flags.demo ?? false;
   const fleet = demo
     ? startDemoFleet(running.hub, {
-        ...(process.env.AGENTDECK_SIM_SPEED === undefined
+        ...(process.env.OPENDECK_SIM_SPEED === undefined
           ? {}
-          : { speed: Number.parseFloat(process.env.AGENTDECK_SIM_SPEED) }),
-        ...(process.env.AGENTDECK_SIM_SEED === undefined
+          : { speed: Number.parseFloat(process.env.OPENDECK_SIM_SPEED) }),
+        ...(process.env.OPENDECK_SIM_SEED === undefined
           ? {}
-          : { seed: Number.parseInt(process.env.AGENTDECK_SIM_SEED, 10) }),
+          : { seed: Number.parseInt(process.env.OPENDECK_SIM_SEED, 10) }),
       })
     : undefined;
 
@@ -169,7 +169,7 @@ function printBanner(
 ): void {
   const primaryUrl = running.lanUrls[0] ?? `http://localhost:${running.port}`;
   term.line('');
-  term.line(`  ▲ AgentDeck hub v${pkg.version}${opts.demo ? ' · demo fleet' : ''}`);
+  term.line(`  ▲ OpenDeck hub v${pkg.version}${opts.demo ? ' · demo fleet' : ''}`);
   if (opts.harnessNotes.length > 0) {
     term.line(`  ${opts.harnessNotes.map((note) => `● ${note}`).join(' · ')}`);
   }
@@ -210,7 +210,7 @@ function devicesList(): void {
   const store = new DeviceStore();
   const devices = store.list();
   if (devices.length === 0) {
-    term.line('No paired devices. Run `agent-deck` and scan the QR code to pair one.');
+    term.line('No paired devices. Run `opendeck` and scan the QR code to pair one.');
     return;
   }
   for (const device of devices) {
@@ -224,7 +224,7 @@ function devicesRevoke(id: string): void {
   if (store.revoke(id)) {
     term.line(`Revoked ${id}. That device can no longer reach this hub.`);
   } else {
-    term.error(`No device with id ${id}. Run \`agentdeck devices list\` to see ids.`);
+    term.error(`No device with id ${id}. Run \`opendeck devices list\` to see ids.`);
     process.exitCode = 1;
   }
 }
@@ -232,7 +232,7 @@ function devicesRevoke(id: string): void {
 export function buildProgram(): Command {
   const program = new Command();
   program
-    .name('agent-deck')
+    .name('opendeck')
     .description('A physical-feeling command deck for AI coding agents, made of software.')
     .version(pkg.version)
     .option('--demo', 'start with a simulated fleet — no agents or keys needed')
@@ -275,7 +275,7 @@ export function buildProgram(): Command {
         const body = (await health.json()) as { version: string; hubId: string };
         term.line(`Hub v${body.version} running on port ${port}.`);
       } catch {
-        term.line(`No hub is running on port ${port}. Start one with \`agent-deck\`.`);
+        term.line(`No hub is running on port ${port}. Start one with \`opendeck\`.`);
         return;
       }
       const devices = new DeviceStore().list();
@@ -323,8 +323,8 @@ export function buildProgram(): Command {
       const result = disconnectClaude({ scope, port: config.config.port });
       term.line(
         result.changed
-          ? `Removed AgentDeck hooks from ${result.path}.`
-          : `No AgentDeck hooks found in ${result.path}.`,
+          ? `Removed OpenDeck hooks from ${result.path}.`
+          : `No OpenDeck hooks found in ${result.path}.`,
       );
     });
 

@@ -4,12 +4,12 @@ import type {
   Session,
   SessionStats,
   SessionStatus,
-} from '@agentdeck/protocol';
+} from '@opendeck/protocol';
 
 /**
  * What the simulator needs from its surroundings. The hub implements this in
  * its simulator glue; tests implement it with an event log. Keeping the
- * dependency pointed this way means `@agentdeck/simulator` depends only on
+ * dependency pointed this way means `@opendeck/simulator` depends only on
  * the protocol.
  */
 export interface SimHost {

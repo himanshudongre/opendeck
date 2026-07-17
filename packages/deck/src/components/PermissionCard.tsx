@@ -1,4 +1,4 @@
-import type { PermissionRequest } from '@agentdeck/protocol';
+import type { PermissionRequest } from '@opendeck/protocol';
 import { Keycap } from './Keycap.js';
 import { controller } from '../lib/controller.js';
 

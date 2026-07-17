@@ -1,5 +1,5 @@
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
-import type { CurrentTool, Session, SessionStats, SessionStatus } from '@agentdeck/protocol';
+import type { CurrentTool, Session, SessionStats, SessionStatus } from '@opendeck/protocol';
 import { prettyToolDetail } from '../pretty.js';
 
 /** The slice of hub powers a normalizer gets, pre-bound to one session. */

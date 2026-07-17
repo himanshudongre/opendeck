@@ -9,5 +9,20 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // If the module bundle never mounts (old browser, blocked script),
+      // say so instead of leaving a silent dark slab. ES5 on purpose.
+      setTimeout(function () {
+        var root = document.getElementById('root');
+        if (root && root.childElementCount === 0) {
+          root.innerHTML =
+            '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0e0f12;color:#e9ebee;font-family:system-ui;padding:24px;text-align:center">' +
+            '<div style="max-width:26rem"><p style="color:#d8b36a;font-weight:600">▲ agentdeck</p>' +
+            '<p style="margin-top:12px;font-size:14px">The deck could not start in this browser.</p>' +
+            '<p style="margin-top:8px;font-size:12px;color:#9ba1ac;line-height:1.6">This usually means the browser or OS is too old to run the app. ' +
+            'Update the device, or open this same address on another phone, tablet, or computer on your network.</p></div></div>';
+        }
+      }, 6000);
+    </script>
   </body>
 </html>

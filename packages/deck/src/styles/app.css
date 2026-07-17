@@ -193,13 +193,29 @@ body {
   pointer-events: none;
 }
 
-/* Diff rendering in permission cards. */
+/* Diff rendering in permission cards. Plain rgba lines come first so older
+   WebKit without color-mix still tints; modern engines take the themed mix. */
 .diff-line-add {
   color: var(--st-done);
+  background: rgb(62 207 142 / 0.08);
   background: color-mix(in srgb, var(--st-done) 8%, transparent);
 }
 
 .diff-line-del {
   color: var(--st-error);
+  background: rgb(255 93 93 / 0.08);
   background: color-mix(in srgb, var(--st-error) 8%, transparent);
+}
+
+/* Amber notice surfaces (reconnect banner, pair-screen errors). */
+.notice-waiting {
+  color: var(--st-waiting);
+  background: rgb(255 180 84 / 0.14);
+  background: color-mix(in srgb, var(--st-waiting) 14%, transparent);
+}
+
+.notice-error {
+  color: var(--st-error);
+  background: rgb(255 93 93 / 0.1);
+  background: color-mix(in srgb, var(--st-error) 10%, transparent);
 }

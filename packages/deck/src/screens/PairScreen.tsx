@@ -36,15 +36,7 @@ export function PairScreen() {
               one-time token and pairs automatically.
             </p>
             {lastError && (
-              <p
-                className="mt-4 rounded-md px-3 py-2 text-xs"
-                style={{
-                  color: 'var(--st-error)',
-                  background: 'color-mix(in srgb, var(--st-error) 10%, transparent)',
-                }}
-              >
-                {lastError.text}
-              </p>
+              <p className="notice-error mt-4 rounded-md px-3 py-2 text-xs">{lastError.text}</p>
             )}
           </>
         )}

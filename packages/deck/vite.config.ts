@@ -4,6 +4,13 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  build: {
+    // A deck must run on the spare phone in the drawer, not only this
+    // year's: down-level syntax to iOS 13-era WebKit. APIs are guarded in
+    // src/lib/compat.ts.
+    target: ['es2018', 'safari13'],
+    cssTarget: 'chrome107',
+  },
   plugins: [
     react(),
     tailwindcss(),

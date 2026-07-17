@@ -59,11 +59,7 @@ export function App() {
         {connection === 'reconnecting' && screen !== 'settings' && (
           <div
             role="status"
-            className="pulse-waiting px-4 py-1 text-center text-[11px]"
-            style={{
-              background: 'color-mix(in srgb, var(--st-waiting) 14%, transparent)',
-              color: 'var(--st-waiting)',
-            }}
+            className="notice-waiting pulse-waiting px-4 py-1 text-center text-[11px]"
           >
             Reconnecting to the hub…
           </div>

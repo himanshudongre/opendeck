@@ -25,6 +25,10 @@ backlit tiles. No agents running yet? See the whole thing in motion first:
 npx agent-deck --demo
 ```
 
+Starting is idempotent — a new `agent-deck` politely takes the port over
+from an old one — and `agent-deck stop` / `agent-deck status` manage the
+running hub from any terminal.
+
 ## Why this instead of plastic
 
 OpenAI's Codex Micro sells two real things: ambient glanceable status and

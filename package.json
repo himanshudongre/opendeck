@@ -16,7 +16,9 @@
     "e2e": "pnpm --filter @agentdeck/e2e e2e",
     "perf": "pnpm --filter @agentdeck/e2e perf",
     "changeset": "changeset",
-    "start": "node packages/hub/dist/cli.js"
+    "start": "node packages/hub/dist/cli.js",
+    "stop": "node packages/hub/dist/cli.js stop",
+    "status": "node packages/hub/dist/cli.js status"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.1",

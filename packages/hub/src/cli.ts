@@ -19,6 +19,37 @@ interface RunFlags {
   auth?: boolean;
 }
 
+/** True when whatever answers on this port is one of ours. */
+async function isOurHub(port: number): Promise<boolean> {
+  try {
+    const res = await fetch(`http://127.0.0.1:${String(port)}/api/health`, {
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!res.ok) return false;
+    const body = (await res.json()) as { hubId?: unknown };
+    return typeof body.hubId === 'string' && body.hubId.startsWith('hub-');
+  } catch {
+    return false;
+  }
+}
+
+/** Asks the hub on this port to shut down; true once the port is free. */
+async function stopHubOnPort(port: number): Promise<boolean> {
+  try {
+    await fetch(`http://127.0.0.1:${String(port)}/api/shutdown`, {
+      method: 'POST',
+      signal: AbortSignal.timeout(2000),
+    });
+  } catch {
+    return false;
+  }
+  for (let attempt = 0; attempt < 25; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    if (!(await isOurHub(port))) return true;
+  }
+  return false;
+}
+
 async function run(flags: RunFlags): Promise<void> {
   const configResult = loadConfig();
   for (const problem of configResult.ok ? [] : configResult.problems) {
@@ -33,10 +64,12 @@ async function run(flags: RunFlags): Promise<void> {
   // the next device (the iPad after the phone) scans without a restart.
   let reissue: (() => void) | undefined;
   let running: RunningHub;
+  let requestShutdown: () => void = () => undefined;
   const requestedPort =
     flags.port === undefined ? configResult.config.port : Number.parseInt(flags.port, 10);
-  try {
-    running = await startHub({
+
+  const boot = (): Promise<RunningHub> =>
+    startHub({
       config: configResult.config,
       version: pkg.version,
       ...(flags.port === undefined ? {} : { port: Number.parseInt(flags.port, 10) }),
@@ -46,17 +79,42 @@ async function run(flags: RunFlags): Promise<void> {
         term.line(`📱 ${name} paired`);
         reissue?.();
       },
+      onShutdownRequest: () => {
+        requestShutdown();
+      },
     });
+
+  try {
+    running = await boot();
   } catch (error) {
-    if (error instanceof Error && 'code' in error && error.code === 'EADDRINUSE') {
+    const portBusy = error instanceof Error && 'code' in error && error.code === 'EADDRINUSE';
+    // Starting is idempotent: an old hub on our port hands it over.
+    if (portBusy && (await isOurHub(requestedPort))) {
+      term.line(`Another hub is on port ${requestedPort} — taking over.`);
+      if (await stopHubOnPort(requestedPort)) {
+        try {
+          running = await boot();
+        } catch (retryError) {
+          term.error(retryError instanceof Error ? retryError.message : 'The hub failed to start.');
+          process.exitCode = 1;
+          return;
+        }
+      } else {
+        term.error(`The hub on port ${requestedPort} did not hand over. Try \`agent-deck stop\`.`);
+        process.exitCode = 1;
+        return;
+      }
+    } else if (portBusy) {
       term.error(
-        `Port ${requestedPort} is already in use — another hub may be running. Stop it, or start this one with --port <n>.`,
+        `Port ${requestedPort} is in use by something that isn't an AgentDeck hub. Stop it, or start with --port <n>.`,
       );
+      process.exitCode = 1;
+      return;
     } else {
       term.error(error instanceof Error ? error.message : 'The hub failed to start.');
+      process.exitCode = 1;
+      return;
     }
-    process.exitCode = 1;
-    return;
   }
 
   const demo = flags.demo ?? false;
@@ -91,12 +149,16 @@ async function run(flags: RunFlags): Promise<void> {
     refresh.unref();
   }
 
+  let stopping = false;
   const shutdown = (): void => {
+    if (stopping) return;
+    stopping = true;
     term.line('');
     term.line('Stopping hub…');
     fleet?.stop();
     void running.close().then(() => process.exit(0));
   };
+  requestShutdown = shutdown;
   process.once('SIGINT', shutdown);
   process.once('SIGTERM', shutdown);
 }
@@ -148,7 +210,7 @@ function devicesList(): void {
   const store = new DeviceStore();
   const devices = store.list();
   if (devices.length === 0) {
-    term.line('No paired devices. Run `agentdeck` and scan the QR code to pair one.');
+    term.line('No paired devices. Run `agent-deck` and scan the QR code to pair one.');
     return;
   }
   for (const device of devices) {
@@ -178,6 +240,51 @@ export function buildProgram(): Command {
     .option('--localhost-only', 'bind to 127.0.0.1 instead of the LAN')
     .option('--no-auth', 'skip device pairing (loud warning; trusted networks only)')
     .action((flags: RunFlags) => run(flags));
+
+  program
+    .command('stop')
+    .description('stop the running hub')
+    .option('--port <port>', 'hub port (default from config)')
+    .action(async (opts: { port?: string }) => {
+      const config = loadConfig();
+      const port = opts.port === undefined ? config.config.port : Number.parseInt(opts.port, 10);
+      if (!(await isOurHub(port))) {
+        term.line(`No hub is running on port ${port}.`);
+        return;
+      }
+      if (await stopHubOnPort(port)) {
+        term.line(`Hub on port ${port} stopped.`);
+      } else {
+        term.error(`The hub on port ${port} did not stop. Find it with \`lsof -i :${port}\`.`);
+        process.exitCode = 1;
+      }
+    });
+
+  program
+    .command('status')
+    .description('show whether a hub is running and what it sees')
+    .option('--port <port>', 'hub port (default from config)')
+    .action(async (opts: { port?: string }) => {
+      const config = loadConfig();
+      const port = opts.port === undefined ? config.config.port : Number.parseInt(opts.port, 10);
+      try {
+        const health = await fetch(`http://127.0.0.1:${String(port)}/api/health`, {
+          signal: AbortSignal.timeout(2000),
+        });
+        if (!health.ok) throw new Error('unhealthy');
+        const body = (await health.json()) as { version: string; hubId: string };
+        term.line(`Hub v${body.version} running on port ${port}.`);
+      } catch {
+        term.line(`No hub is running on port ${port}. Start one with \`agent-deck\`.`);
+        return;
+      }
+      const devices = new DeviceStore().list();
+      term.line(
+        devices.length === 0
+          ? 'No devices paired yet — scan the QR in the hub terminal.'
+          : `${devices.length} paired device${devices.length === 1 ? '' : 's'}.`,
+      );
+    });
 
   program
     .command('connect')

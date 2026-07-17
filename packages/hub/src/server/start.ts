@@ -30,6 +30,8 @@ export interface StartOptions {
   /** Disable the HTTPS lane (tests). */
   httpsLane?: boolean;
   onPaired?: (deviceName: string) => void;
+  /** Invoked when a loopback client asks this hub to shut down. */
+  onShutdownRequest?: () => void;
 }
 
 export interface RunningHub {
@@ -92,6 +94,9 @@ export async function startHub(options: StartOptions): Promise<RunningHub> {
     authRequired,
     ...(deckDir === undefined ? {} : { deckDir }),
     ...(options.onPaired === undefined ? {} : { onPaired: options.onPaired }),
+    ...(options.onShutdownRequest === undefined
+      ? {}
+      : { onShutdownRequest: options.onShutdownRequest }),
     claudeHooks: (payload) => hooksGateway.handle(payload),
   };
 

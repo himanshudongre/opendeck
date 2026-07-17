@@ -18,6 +18,8 @@ export interface HttpDeps {
   onPaired?: (deviceName: string) => void;
   /** Claude Code hook POSTs land here (observed sessions, SPEC §4.1). */
   claudeHooks?: (payload: unknown) => Promise<HookGatewayResponse>;
+  /** Loopback-only graceful shutdown (`agent-deck stop`, start takeover). */
+  onShutdownRequest?: () => void;
 }
 
 export interface HookGatewayResponse {
@@ -98,6 +100,19 @@ export async function registerRoutes(app: FastifyInstance, deps: HttpDeps): Prom
       protocolVersion: PROTOCOL_VERSION,
     });
   });
+
+  if (deps.onShutdownRequest !== undefined) {
+    const onShutdownRequest = deps.onShutdownRequest;
+    app.post('/api/shutdown', (req, reply) => {
+      // Same trust boundary as the hooks route: this machine only.
+      if (req.ip !== '127.0.0.1' && req.ip !== '::1') {
+        return reply.status(403).send({ error: 'Shutdown is accepted from this machine only.' });
+      }
+      log.info('shutdown requested');
+      setTimeout(onShutdownRequest, 50);
+      return reply.status(202).send({ ok: true });
+    });
+  }
 
   if (deps.claudeHooks !== undefined) {
     const claudeHooks = deps.claudeHooks;

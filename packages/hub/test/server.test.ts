@@ -433,6 +433,27 @@ describe('bind configuration', () => {
   });
 });
 
+describe('shutdown route', () => {
+  it('accepts loopback shutdown requests and fires the callback', async () => {
+    await running.close();
+    let asked = 0;
+    running = await startHub({
+      config: HubConfigSchema.parse({}),
+      version: '1.0.0-test',
+      port: 0,
+      localhostOnly: true,
+      httpsLane: false,
+      onShutdownRequest: () => {
+        asked += 1;
+      },
+    });
+    const res = await fetch(`${base()}/api/shutdown`, { method: 'POST' });
+    expect(res.status).toBe(202);
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    expect(asked).toBe(1);
+  });
+});
+
 describe('claude hooks route', () => {
   it('accepts loopback hook posts and creates observed sessions', async () => {
     const res = await fetch(`${base()}/api/hooks/claude`, {

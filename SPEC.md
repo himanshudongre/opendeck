@@ -1,9 +1,19 @@
-# AgentDeck — Product & Engineering Specification
+# OpenDeck — Product & Engineering Specification
 
-**Version:** 1.0 · **Status:** Approved for build · **License:** MIT · **Repo name:** `agentdeck`
+> **Amendments (v1.0 as shipped).** This spec was written before build and is
+> kept as the source of truth for scope and behavior. Where the shipped
+> product deliberately went further, [DECISIONS.md](DECISIONS.md) records the
+> call. The notable deltas: the deck opens in **micro mode** (the whole
+> surface as one flat, straight-on device render; grid/tablet layouts remain
+> presets), an optional WebGL 3D face ships as a lazy chunk behind Settings →
+> Device rendering, switch acoustics are synthesized with an importable
+> custom-sound preset, the device restyles per theme (porcelain/graphite),
+> tablets get ten-key pages, and the deck runs React 19.
+
+**Version:** 1.0 · **Status:** Approved for build · **License:** MIT · **Repo name:** `opendeck`
 
 > A physical-feeling command deck for AI coding agents, made of software.
-> Turn any phone, tablet, or spare screen into a zero-lag control surface for Claude Code and Codex — glanceable live status, tactile controls, one-tap approvals. No hardware to buy. `npx agentdeck`, scan a QR code, done.
+> Turn any phone, tablet, or spare screen into a zero-lag control surface for Claude Code and Codex — glanceable live status, tactile controls, one-tap approvals. No hardware to buy. `npx opendeck`, scan a QR code, done.
 
 ---
 
@@ -11,12 +21,12 @@
 
 OpenAI's Codex Micro ($230, limited run) sells two real things: **ambient glanceable status** (six RGB "Agent Keys" in your peripheral vision) and **one-press tactile control** (13 keys, a dial for reasoning effort, a joystick for workflows, a voice shortcut). It works only with Codex and only at your desk.
 
-AgentDeck delivers both of those experiences — and everything the plastic can't — using a device the user already owns:
+OpenDeck delivers both of those experiences — and everything the plastic can't — using a device the user already owns:
 
 - **Unlimited agents**, not six. Every tile shows status color _plus_ harness, repo/branch, elapsed time, current tool, and token cost.
 - **Real approvals.** When an agent asks for permission, the deck shows the actual command or diff and lets you approve, deny, or always-allow. An RGB key can only blink at you.
 - **Harness-agnostic.** Claude Code and Codex at launch, behind one adapter interface. OpenCode next. A simulator adapter ships in v1 for demos and tests.
-- **A peripheral, not another dashboard.** Fullscreen, chrome-less, always-awake, designed to sit on a stand next to the keyboard and be read from across the room. This is the positioning wedge: existing tools (amux, CliDeck, Omnara, Happy, Claude Code's own Agent View) are remote-control dashboards. AgentDeck is desk furniture.
+- **A peripheral, not another dashboard.** Fullscreen, chrome-less, always-awake, designed to sit on a stand next to the keyboard and be read from across the room. This is the positioning wedge: existing tools (amux, CliDeck, Omnara, Happy, Claude Code's own Agent View) are remote-control dashboards. OpenDeck is desk furniture.
 - **$0, open source, no cloud, no telemetry.**
 
 **Non-goals (v1):** agent orchestration/scheduling, git worktree management, kanban boards, running agents on remote machines (single local hub only), native mobile apps, Windows-first polish (must work on Windows; macOS/Linux are the reference platforms).
@@ -46,12 +56,12 @@ AgentDeck delivers both of those experiences — and everything the plastic can'
 
 Three artifacts, one monorepo:
 
-| Package              | What it is                                                                                                                       |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/protocol`  | Zod schemas + TypeScript types for every message. The single source of truth.                                                    |
-| `packages/hub`       | Node CLI + server. Owns adapters, sessions, auth, WebSocket fan-out, and serves the built deck. Published to npm as `agentdeck`. |
-| `packages/deck`      | The PWA. React + Vite + Tailwind. No component library — custom design system (§7).                                              |
-| `packages/simulator` | Deterministic fake agent driving demos, screenshots, and E2E tests.                                                              |
+| Package              | What it is                                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/protocol`  | Zod schemas + TypeScript types for every message. The single source of truth.                                                   |
+| `packages/hub`       | Node CLI + server. Owns adapters, sessions, auth, WebSocket fan-out, and serves the built deck. Published to npm as `opendeck`. |
+| `packages/deck`      | The PWA. React + Vite + Tailwind. No component library — custom design system (§7).                                             |
+| `packages/simulator` | Deterministic fake agent driving demos, screenshots, and E2E tests.                                                             |
 
 ---
 
@@ -142,7 +152,7 @@ interface Adapter {
 - **Dial:** maps to model select (Haiku/Sonnet/Opus tiers) and thinking budget (`maxThinkingTokens` steps: off / 4k / 16k / 32k). Both are per-session settings surfaced as dial detents.
 - Resume via session id.
 
-**Observed sessions (the terminal the user already has open)** — via Claude Code **HTTP hooks**. `agentdeck connect claude` writes hook config (scoped to `~/.claude/settings.json` or a project's `.claude/settings.json`, user's choice, idempotent, with clean `disconnect` removal) that POSTs lifecycle events to the hub:
+**Observed sessions (the terminal the user already has open)** — via Claude Code **HTTP hooks**. `opendeck connect claude` writes hook config (scoped to `~/.claude/settings.json` or a project's `.claude/settings.json`, user's choice, idempotent, with clean `disconnect` removal) that POSTs lifecycle events to the hub:
 
 - `SessionStart` / `SessionEnd` → session upsert/remove
 - `UserPromptSubmit` → status `thinking`
@@ -161,21 +171,21 @@ interface Adapter {
 
 ### 4.4 Simulator (ships in v1, load-bearing)
 
-Scripted scenarios (`demo.ts` fixtures): multi-agent fleets cycling through realistic statuses, permission requests with sample diffs, an error, a long-runner. Powers `agentdeck --demo` (instant gorgeous demo with zero setup — this is the README GIF), Playwright E2E, and screenshot generation. Deterministic via seeded timings.
+Scripted scenarios (`demo.ts` fixtures): multi-agent fleets cycling through realistic statuses, permission requests with sample diffs, an error, a long-runner. Powers `opendeck --demo` (instant gorgeous demo with zero setup — this is the README GIF), Playwright E2E, and screenshot generation. Deterministic via seeded timings.
 
 ---
 
 ## 5. Connection & pairing (the "it just works" flow)
 
 ```
-$ npx agentdeck
-  ▲ AgentDeck hub v1.0.0
+$ npx opendeck
+  ▲ OpenDeck hub v1.0.0
   ● Claude Code 2.x detected · ● Codex 0.x detected
   Deck ready →  http://studio.local:3325      (or http://192.168.1.24:3325)
   [QR CODE]    scan with your phone
 ```
 
-1. QR encodes `http://<host>:3325/#pair=<one-time-token>`. Opening it pairs instantly: token is exchanged for a long-lived device credential (stored in `localStorage`, revocable from hub CLI `agentdeck devices`). The terminal prints "📱 iPad paired".
+1. QR encodes `http://<host>:3325/#pair=<one-time-token>`. Opening it pairs instantly: token is exchanged for a long-lived device credential (stored in `localStorage`, revocable from hub CLI `opendeck devices`). The terminal prints "📱 iPad paired".
 2. `hostname.local` (mDNS) is printed alongside the raw IP; QR is the primary path so discovery never blocks anyone.
 3. Subsequent visits auto-connect: the PWA remembers the hub, reconnects with backoff, resumes via `lastSeq`. Kill the hub, restart it — the deck comes back by itself.
 4. Multiple simultaneous clients are first-class (phone + iPad + a desktop tab), all live, all consistent.
@@ -245,14 +255,14 @@ The deck must read as a _device_, not a web page. One signature idea, executed w
 
 ### 7.4 Copy rules
 
-Sentence case, plain verbs, no filler, no exclamation marks. Buttons say what they do ("Approve edit", not "Submit"). Errors state what happened and the next step. Empty grid says: "No agents yet. Start one in your terminal, or run `agentdeck --demo` to see the deck in motion."
+Sentence case, plain verbs, no filler, no exclamation marks. Buttons say what they do ("Approve edit", not "Submit"). Errors state what happened and the next step. Empty grid says: "No agents yet. Start one in your terminal, or run `opendeck --demo` to see the deck in motion."
 
 ---
 
 ## 8. Configuration & security
 
-- `~/.agentdeck/` holds `config.json` (port, bind, theme defaults, custom actions, prompt templates), `devices.json` (paired device credentials), `cert/`, `logs/`. All hand-editable; hub validates with Zod and prints friendly errors.
-- **Security model:** binds LAN by default but every WS/REST call requires a paired-device credential; pairing tokens are one-time and 10-minute expiring; `Origin` checked; pairing attempts rate-limited; `agentdeck devices revoke <id>`. `--localhost-only` and `--no-auth` (loud warning) flags exist. `shell` actions require per-action confirm on the deck and are defined only in `config.json`, never creatable from a client. No analytics, no update phone-home, no cloud path at all.
+- `~/.opendeck/` holds `config.json` (port, bind, theme defaults, custom actions, prompt templates), `devices.json` (paired device credentials), `cert/`, `logs/`. All hand-editable; hub validates with Zod and prints friendly errors.
+- **Security model:** binds LAN by default but every WS/REST call requires a paired-device credential; pairing tokens are one-time and 10-minute expiring; `Origin` checked; pairing attempts rate-limited; `opendeck devices revoke <id>`. `--localhost-only` and `--no-auth` (loud warning) flags exist. `shell` actions require per-action confirm on the deck and are defined only in `config.json`, never creatable from a client. No analytics, no update phone-home, no cloud path at all.
 
 ---
 
@@ -269,7 +279,7 @@ Sentence case, plain verbs, no filler, no exclamation marks. Buttons say what th
 ## 10. Repository standard
 
 ```
-agentdeck/
+opendeck/
 ├─ packages/{protocol,hub,deck,simulator}/
 ├─ e2e/                      # Playwright suites + latency harness
 ├─ docs/                     # screenshots (Playwright-generated), GIF script, architecture.md
@@ -277,7 +287,7 @@ agentdeck/
 ├─ CLAUDE.md  SPEC.md  DECISIONS.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  LICENSE  README.md
 ```
 
-README anatomy (in order): logo + one-liner → demo GIF (from `--demo`) → 30-second quickstart (`npx agentdeck`) → feature grid vs Codex Micro comparison table → architecture diagram (Mermaid) → harness setup (Claude / Codex) → configuration → contributing → FAQ ("Is my code sent anywhere?" — No, and here's why you can verify that). Every claim in the README must be true on day one.
+README anatomy (in order): logo + one-liner → demo GIF (from `--demo`) → 30-second quickstart (`npx opendeck`) → feature grid vs Codex Micro comparison table → architecture diagram (Mermaid) → harness setup (Claude / Codex) → configuration → contributing → FAQ ("Is my code sent anywhere?" — No, and here's why you can verify that). Every claim in the README must be true on day one.
 
 ## 11. Roadmap
 
@@ -287,8 +297,8 @@ README anatomy (in order): logo + one-liner → demo GIF (from `--demo`) → 30-
 
 ## 12. Definition of Done (v1.0 release gate)
 
-- [ ] `npx agentdeck` → QR → paired phone → live tiles, on a clean machine, in under 60 seconds
-- [ ] `agentdeck --demo` shows a full fleet with zero agents installed
+- [ ] `npx opendeck` → QR → paired phone → live tiles, on a clean machine, in under 60 seconds
+- [ ] `opendeck --demo` shows a full fleet with zero agents installed
 - [ ] Claude Code: managed spawn with deck approvals; observed terminal session reflects status via hooks
 - [ ] Codex: managed spawn with JSONL streaming and reasoning dial
 - [ ] Reconnect after hub restart or network blip with zero lost status changes

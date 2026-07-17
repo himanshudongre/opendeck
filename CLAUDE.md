@@ -30,7 +30,7 @@ packages/hub        Node CLI + server (published to npm as `opendeck`).
   src/core/           session registry, event bus, replay ring buffer
   src/server/         fastify REST + static deck, ws fan-out, auth, pairing
   src/adapters/       Adapter interface + claude (managed/observed), codex, simulator glue
-packages/deck       React 18 PWA (Vite + Tailwind v4 + zustand + motion). Custom design
+packages/deck       React 19 PWA (Vite + Tailwind v4 + zustand + motion; optional three.js face). Custom design
                     system from SPEC §7 tokens — no component library.
 packages/simulator  deterministic scripted fleet: demos, E2E, screenshots.
 e2e/                Playwright projects (iPhone 14 / iPad / desktop) + latency harness.

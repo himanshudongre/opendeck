@@ -35,6 +35,12 @@ VITE_HUB_URL=http://127.0.0.1:3325 pnpm --filter @opendeck/deck dev
 CI runs all of it on ubuntu + macos, Node 22 + 24. A red gate blocks merge;
 please don't `.skip` your way around one.
 
+Two extra suites run locally (they need an installed, authenticated CLI, so
+CI can't): `pnpm --filter @opendeck/e2e usetest` drives the WebGL face's
+real hit-testing, and `pnpm --filter @opendeck/e2e livetest` spawns a real
+Claude session from the deck, approves a live Write permission with the ✓
+key, and asserts the file Claude wrote actually landed on disk.
+
 House rules that lint enforces so reviews don't have to: TypeScript strict
 and ESM everywhere; `any`, `@ts-ignore`, and `eslint-disable` comments are
 errors; no `console.*` outside `packages/hub/src/logger.ts`; UI copy is

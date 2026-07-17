@@ -145,6 +145,50 @@ describe('MicroDeck', () => {
     expect(screen.getByRole('slider')).toBeDefined();
   });
 
+  it('pressing a disabled command explains itself on the readout strip', () => {
+    useDeck
+      .getState()
+      .applyServerMsg(serverMsg('session_upsert', makeSession({ capabilities: ['prompt'] }), 1));
+    render(<MicroDeck />);
+    const approve = screen.getByRole('button', { name: 'Approve' });
+    expect(approve).toHaveProperty('disabled', true);
+    fireEvent.pointerDown(approve.parentElement!);
+    expect(screen.getByText('nothing is waiting for approval')).toBeDefined();
+  });
+
+  it('a horizontal plate swipe pages through agents, even across keys', () => {
+    for (let i = 1; i <= 8; i += 1) {
+      useDeck
+        .getState()
+        .applyServerMsg(
+          serverMsg(
+            'session_upsert',
+            makeSession({ id: `s-${String(i)}`, title: `agent ${String(i)}` }),
+            i,
+          ),
+        );
+    }
+    const { container } = render(<MicroDeck />);
+    const plate = container.querySelector('.micro-plate')!;
+    // Start the swipe on a key — thumbs travel across keys, not bezels.
+    fireEvent.pointerDown(screen.getByRole('button', { name: /agent 1/ }), {
+      clientX: 300,
+      clientY: 200,
+    });
+    fireEvent.pointerUp(plate, { clientX: 120, clientY: 205 });
+    expect(screen.getByRole('button', { name: /agent 7/ })).toBeDefined();
+    fireEvent.pointerDown(plate, { clientX: 120, clientY: 200 });
+    fireEvent.pointerUp(plate, { clientX: 320, clientY: 205 });
+    expect(screen.getByRole('button', { name: /agent 1/ })).toBeDefined();
+  });
+
+  it('tapping the unavailable mic opens settings instead of dying silently', () => {
+    useDeck.getState().applyServerMsg(serverMsg('session_upsert', makeSession(), 1));
+    render(<MicroDeck />);
+    fireEvent.pointerDown(screen.getByRole('button', { name: /Voice is unavailable/ }));
+    expect(useDeck.getState().screen).toBe('settings');
+  });
+
   it('MicroScreen honors the classic rendering choice', () => {
     useDeck.getState().updateSettings({ rendering: 'classic' });
     useDeck.getState().applyServerMsg(serverMsg('session_upsert', makeSession(), 1));

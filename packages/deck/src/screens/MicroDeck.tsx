@@ -18,6 +18,9 @@ import {
 import { useDeck } from '../state/store.js';
 import { keyIcon } from '../state/icons.js';
 
+/** Set while a plate swipe fires so control clicks on release are ignored. */
+const plateSwipe = { fired: false };
+
 const ACCENT_TOKEN = {
   working: 'working',
   waiting: 'waiting',
@@ -156,7 +159,7 @@ function AgentKey({
         }}
         onPointerLeave={() => window.clearTimeout(timer.current)}
         onClick={() => {
-          if (session && !longPressed.current) onSelect();
+          if (session && !longPressed.current && !plateSwipe.fired) onSelect();
         }}
       >
         <span className="flex h-full w-full items-center justify-center">
@@ -180,16 +183,23 @@ function CommandKey({
   label,
   onPress,
   disabled = false,
+  onDisabledPress,
   children,
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
+  onDisabledPress?: () => void;
   children: React.ReactNode;
 }) {
   const press = usePress();
   return (
-    <div className="flex items-center justify-center">
+    <div
+      className="flex items-center justify-center"
+      onPointerDown={() => {
+        if (disabled) onDisabledPress?.();
+      }}
+    >
       <button
         type="button"
         aria-label={label}
@@ -202,7 +212,7 @@ function CommandKey({
           if (!disabled) press.up();
         }}
         onClick={() => {
-          if (!disabled) onPress();
+          if (!disabled && !plateSwipe.fired) onPress();
         }}
       >
         {children}
@@ -351,13 +361,19 @@ function MicroStick({ targetId }: { targetId: string | undefined }) {
 /** Push-to-talk pill with a listening LED and live transcript. */
 function MicBar({ targetId }: { targetId: string | undefined }) {
   const settings = useDeck((state) => state.settings);
+  const setScreen = useDeck((state) => state.setScreen);
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const session = useRef<VoiceSession | undefined>(undefined);
   const available = voiceAvailability() === 'available' && targetId !== undefined;
 
   const begin = (): void => {
-    if (!available) return;
+    if (!available) {
+      // Not silently dead: explain — Settings carries the voice setup walk.
+      hapticTick(settings.haptics, 10);
+      setScreen('settings');
+      return;
+    }
     hapticTick(settings.haptics, 12);
     playKeyDown(settings.sound);
     setListening(true);
@@ -429,6 +445,13 @@ export function MicroDeck() {
   const setScreen = useDeck((state) => state.setScreen);
   const plateHold = useRef<number | undefined>(undefined);
   const swipe = useRef<{ x: number; y: number } | undefined>(undefined);
+  const [hint, setHint] = useState<string | undefined>(undefined);
+  const hintTimer = useRef<number | undefined>(undefined);
+  const showHint = (text: string): void => {
+    setHint(text);
+    window.clearTimeout(hintTimer.current);
+    hintTimer.current = window.setTimeout(() => setHint(undefined), 2800);
+  };
   const outerRef = useRef<HTMLDivElement>(null);
   const deviceRef = useRef<HTMLDivElement>(null);
   const light = useLightBuild();
@@ -460,18 +483,20 @@ export function MicroDeck() {
         style={{ transform: `scale(${scale})` }}
       >
         <div
-          className="micro-plate px-5 pb-4 pt-3"
+          className="micro-plate touch-none select-none px-5 pb-4 pt-3"
           onContextMenu={(event) => {
             event.preventDefault();
             setEditMode(true);
           }}
           onPointerDown={(event) => {
-            // Swipes anywhere on the plate page through agents; presses that
-            // start on a control never become swipes.
-            const onControl =
+            // Swipes anywhere on the plate page through agents — including
+            // across the keys, which is where thumbs naturally travel. Only
+            // the knob and joystick own their drags.
+            plateSwipe.fired = false;
+            const ownsDrag =
               event.target instanceof Element &&
-              event.target.closest('button, [role="slider"], [role="group"]') !== null;
-            swipe.current = onControl ? undefined : { x: event.clientX, y: event.clientY };
+              event.target.closest('[role="slider"], [role="group"]') !== null;
+            swipe.current = ownsDrag ? undefined : { x: event.clientX, y: event.clientY };
             // Long-press on the bare plate opens edit mode (touch devices
             // don't fire contextmenu). Presses on controls cancel it.
             if (event.target === event.currentTarget) {
@@ -486,9 +511,14 @@ export function MicroDeck() {
             const dx = event.clientX - start.x;
             const dy = event.clientY - start.y;
             if (Math.abs(dx) > 56 && Math.abs(dy) < Math.abs(dx) * 0.6) {
+              plateSwipe.fired = true;
               const next = currentPage + (dx < 0 ? 1 : -1);
               setPage(Math.max(0, Math.min(pageCount - 1, next)));
             }
+          }}
+          onPointerCancel={() => {
+            window.clearTimeout(plateHold.current);
+            swipe.current = undefined;
           }}
           onPointerLeave={() => window.clearTimeout(plateHold.current)}
         >
@@ -538,9 +568,11 @@ export function MicroDeck() {
           <div className="micro-lcd mb-4 px-3 py-2">
             <p
               className="truncate text-[12px]"
-              style={{ color: pending ? 'var(--st-waiting)' : '#d7dbe2' }}
+              style={{
+                color: hint ? 'var(--st-waiting)' : pending ? 'var(--st-waiting)' : '#d7dbe2',
+              }}
             >
-              {lcdLine}
+              {hint ?? lcdLine}
             </p>
             <div className="flex items-center justify-between">
               <p className="text-[10px]" style={{ color: '#8a909c' }}>
@@ -631,6 +663,15 @@ export function MicroDeck() {
                   key={binding.id}
                   label={bindingLabel(binding)}
                   disabled={!armed}
+                  onDisabledPress={() =>
+                    showHint(
+                      binding.kind === 'approve' || binding.kind === 'deny'
+                        ? 'nothing is waiting for approval'
+                        : binding.kind === 'interrupt'
+                          ? 'the selected agent is not running'
+                          : 'no agent selected',
+                    )
+                  }
                   onPress={() => fireBinding(binding)}
                 >
                   {Icon ? (
@@ -650,6 +691,7 @@ export function MicroDeck() {
             <CommandKey
               label="Open the selected agent"
               disabled={attention === undefined}
+              onDisabledPress={() => showHint('no agent selected')}
               onPress={() => attention && openFocus(attention.id)}
             >
               <span aria-hidden className="font-data text-[15px]" style={{ color: 'var(--ink-2)' }}>

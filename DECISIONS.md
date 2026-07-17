@@ -12,7 +12,7 @@ Small, dated records of choices the spec left open. One line of rationale each.
 ## Version pins (Phase 0)
 
 - **zod 3.25.x** — prompt pins zod v3 (zod 4 exists; not used).
-- **React 18.3.x** — prompt pins React 18 (React 19 exists; not used).
+- **React 18.3.x at scaffold time** (prompt pinned React 18) — later upgraded to **React 19** for @react-three/fiber v9 + three r185 (see "The WebGL device face"); all suites passed unchanged.
 - **TypeScript 5.9.x** — TS 7 (Go compiler) is out but typescript-eslint 8.x officially supports ≤ 5.9; strict-lint gates matter more than compiler speed here.
 - Fastify 5.10, ws 8.21, execa 9, commander 15, pino 10, tsup 8.5, Vitest 4.1, Vite 7.x, Tailwind 4.3, motion 12, vite-plugin-pwa 1.3, Playwright 1.61, ESLint 9 + typescript-eslint 8, Changesets 2.31 (see Phase 1 notes for the ESLint/Vite pins).
 
@@ -20,7 +20,7 @@ Small, dated records of choices the spec left open. One line of rationale each.
 
 - ESLint pinned to 9.x (not 10.x): typescript-eslint 8's supported peer range; the whole quality gate rides on strict type-aware linting working flawlessly.
 - Vite pinned to 7.x (not 8.x): vite-plugin-pwa 1.3 and the current Vitest/browser tooling are validated against Vite 7.
-- `@agentdeck/protocol` and `@agentdeck/simulator` stay private and unbuilt (`main` → `src/index.ts`); tsup bundles them into the published `agentdeck` package via `noExternal`. One npm artifact, no internal version skew.
+- `@opendeck/protocol` and `@opendeck/simulator` stay private and unbuilt (`main` → `src/index.ts`); tsup bundles them into the published `opendeck` package via `noExternal`. One npm artifact, no internal version skew.
 - Hub package version starts at 0.0.0 so the initial major changeset releases exactly 1.0.0.
 - Lint gate = `eslint . && prettier --check .`; the banned-comment rule is `@eslint-community/eslint-comments/no-use` (bans all eslint directive comments, not just eslint-disable).
 - Package `test` scripts are added only once a package has test files (empty Vitest suites exit non-zero; `passWithNoTests` would mask real misconfiguration).
@@ -38,7 +38,7 @@ Small, dated records of choices the spec left open. One line of rationale each.
 ## Hub core (Phase 3)
 
 - Replay buffer: one 1,000-entry ring per session (SPEC wording), `session_upsert`/`removed`/permission messages recorded in their session's ring; a resume gap in any ring falls back to a snapshot hello.
-- WS auth via `?device=&credential=` query params (browsers can't set WS headers); REST snapshot auth via `x-agentdeck-*` headers. Credentials stored sha256-hashed in devices.json, compared timing-safe.
+- WS auth via `?device=&credential=` query params (browsers can't set WS headers); REST snapshot auth via `x-opendeck-*` headers. Credentials stored sha256-hashed in devices.json, compared timing-safe.
 - Origin policy: same-hostname (any hub port) or explicitly allowed dev origins; absent Origin (non-browser clients) passes. Enforced at upgrade time with a 403.
 - Shell runner is injected into the hub core (`runShell`), keeping core process-free and unit tests hermetic; execa lives at the composition boundary.
 - Fastify runs with `logger: false`: fastify's type generics can't carry our pino instance under `exactOptionalPropertyTypes`, and hub logging already goes through `logger.ts`.
@@ -50,7 +50,7 @@ Small, dated records of choices the spec left open. One line of rationale each.
 - **Claude managed** rides `@anthropic-ai/claude-agent-sdk` `query()` in streaming-input mode with `settingSources: []` (managed sessions must not load the user's hooks, or observed mode would double-report them). Dial: `setModel` (haiku/sonnet/opus aliases) and `setMaxThinkingTokens` (off/4k/16k/32k → 0/4096/16384/32768).
 - The claude-stream fixture is **real recorded output** from the installed `claude 2.1.101` (`-p --output-format stream-json --verbose`, haiku, sanitized paths, rate_limit_event line dropped). The error-result fixture is synthetic but typed against the SDK's `SDKResultError`.
 - **Claude observed** uses command hooks that POST the hook's stdin JSON to `http://127.0.0.1:<port>/api/hooks/claude` via curl (`--max-time 3` fire-and-forget for lifecycle events; `--max-time 310` for `PermissionRequest`, hook `timeout: 320`). The 2.1.x hook schema supports answering PermissionRequest via `hookSpecificOutput.decision` (verified against the SDK's mirrored types), so terminal sessions get deck approvals. Fast-fallback rules: no deck clients connected → immediate 204 (normal terminal prompt); deck silent for 5 minutes → dismiss and 204.
-- The hooks route only accepts loopback sources; `connect`/`disconnect` are idempotent, marker = the `/api/hooks/claude` URL substring, and they never touch non-AgentDeck hooks.
+- The hooks route only accepts loopback sources; `connect`/`disconnect` are idempotent, marker = the `/api/hooks/claude` URL substring, and they never touch non-OpenDeck hooks.
 - **Codex** floor is `codex exec --json` (JSONL), `exec resume <thread_id>` per follow-up turn, `-c model_reasoning_effort=` for the dial, `--sandbox` presets via a confirm-style custom action. Codex isn't installed here, so the JSONL fixtures follow the documented event shapes (`thread.started`, `turn.*`, `item.*` with `command_execution`/`file_change`/`agent_message`/`reasoning`/`mcp_tool_call`/`web_search`) and `detect()` re-verifies `--json` support on machines that have Codex; the app-server JSON-RPC mode was left out because there is no installed binary to verify it against (SPEC §4.2 keeps exec as the guaranteed floor).
 - Codex exec cannot answer interactive approvals mid-stream, so codex sessions honestly omit the `approve` capability; the shared contract suite asserts that instead of skipping.
 - Contract suite: process boundaries are injectable (`QueryFn` for the SDK, `CodexRunner` for execa, gateway takes raw hook payloads), so fixtures replay against real Hub instances and assert broadcast-level behavior.
@@ -89,7 +89,7 @@ Grid (home — phone portrait):
 
 ```
 ┌────────────────────────────────┐
-│ ▲ agentdeck   3 running · 1 ⏳ │  ← StatBar: fleet counts, tokens/cost today,
+│ ▲ opendeck   3 running · 1 ⏳ │  ← StatBar: fleet counts, tokens/cost today,
 │ 41.2k tok · $0.31 · 12 ms ●    │     live hub latency, connection dot
 ├────────────────────────────────┤
 │ ╭──────────╮  ╭──────────╮     │
@@ -164,11 +164,11 @@ Pair: single centered keycap panel — wordmark, one-line explanation, camera-le
 
 ## Docs & release engineering (Phase 8)
 
-- README media are generated, not staged: `pnpm --filter @agentdeck/e2e screenshots` drives the built hub's demo fleet with Playwright and writes docs/deck-graphite-phone.png, deck-focus-permission.png, deck-workshop-tablet.png, and demo.gif (recorded video → ffmpeg palette GIF). Regenerate after visual changes; the PNGs/GIF are committed because the README needs them on npm/GitHub.
+- README media are generated, not staged: `pnpm --filter @opendeck/e2e screenshots` drives the built hub's demo fleet with Playwright and writes docs/deck-graphite-phone.png, deck-focus-permission.png, deck-workshop-tablet.png, and demo.gif (recorded video → ffmpeg palette GIF). Regenerate after visual changes; the PNGs/GIF are committed because the README needs them on npm/GitHub.
 - The README's privacy claim is phrased verifiably (grep for network calls) rather than as an assertion of intent.
 - Known-limitations list in the FAQ states the Codex fixture provenance and the exec-mode approval gap plainly — honesty over gloss (SPEC §10: every claim true).
-- `npm pack` verification: tarball installed into a temp project; `agentdeck --version`, `--demo` boot, `/api/health`, deck HTML, and a 7-session snapshot all confirmed against the packed artifact.
-- Initial changeset is a major on `agentdeck` (0.0.0 → 1.0.0); private workspaces are excluded from versioning by the changesets `privatePackages` config.
+- `npm pack` verification: tarball installed into a temp project; `opendeck --version`, `--demo` boot, `/api/health`, deck HTML, and a 7-session snapshot all confirmed against the packed artifact.
+- Initial changeset is a major on `opendeck` (0.0.0 → 1.0.0); private workspaces are excluded from versioning by the changesets `privatePackages` config.
 
 ## Adversarial self-review (Phase 9)
 
@@ -181,7 +181,7 @@ Pair: single centered keycap panel — wordmark, one-line explanation, camera-le
 
 ## Post-RC field fixes (2026-07-17, after first real device test)
 
-- **npm rename: `agentdeck` → `agent-deck`.** The unhyphenated name on the public registry belongs to an unrelated product ("Mobile control for your coding agents", v0.4.x) — `npx agentdeck` outside this repo runs _their_ hub, which is what a blank first-scan can look like. The brand stays AgentDeck; the package, bin, README commands, deck UI copy, protocol upgrade hint, and changeset all say `agent-deck` now.
+- **npm rename: `opendeck` → `agent-deck`.** The unhyphenated name on the public registry belongs to an unrelated product ("Mobile control for your coding agents", v0.4.x) — `npx opendeck` outside this repo runs _their_ hub, which is what a blank first-scan can look like. The brand stays OpenDeck; the package, bin, README commands, deck UI copy, protocol upgrade hint, and changeset all say `agent-deck` now.
 - **Older mobile WebKit support.** Vite 7's default target (~Safari 16) shipped `??=` syntax and a dependency call to `Object.hasOwn` (Safari 15.4+); on older iPhones/iPads the bundle never mounted — a silent dark slab. Deck now builds to `es2018`/`safari13`, guards `Object.hasOwn` in `src/lib/compat.ts` (imported first), and gives `color-mix` surfaces plain rgba fallbacks (notice/diff tints).
 - **Boot failures speak.** index.html carries an ES5 inline fallback: if `#root` is still empty after 6 s, the page explains the browser is too old and suggests another device — a blank screen is never mute again.
 

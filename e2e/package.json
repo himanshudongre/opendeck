@@ -8,7 +8,8 @@
     "perf": "node scripts/perf.mjs",
     "typecheck": "tsc --noEmit",
     "screenshots": "node scripts/screenshots.mjs",
-    "usetest": "node scripts/usetest.mjs"
+    "usetest": "node scripts/usetest.mjs",
+    "livetest": "node scripts/livetest.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

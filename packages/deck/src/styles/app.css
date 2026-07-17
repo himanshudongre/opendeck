@@ -217,31 +217,33 @@ body {
 /* ------------------------------------------------------------------------- */
 
 @layer components {
-  /* Outer case: extruded slab with a soft desk shadow. */
+  /* Flat product-render language: the device viewed dead straight-on, like
+     a studio photograph. One clean slab, frosted caps over LED glow, thin
+     outline controls. Two builds: porcelain (light themes) and graphite
+     (dark themes), switched by .micro-light on the device root. */
+
   .micro-body {
     position: relative;
-    border-radius: 34px;
-    background:
-      linear-gradient(165deg, rgb(255 255 255 / 0.07), rgb(0 0 0 / 0.22)), var(--surface-1);
+    border-radius: 36px;
+    background: var(--surface-1);
     border: 1px solid var(--hairline);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.09),
-      inset 0 -3px 6px rgb(0 0 0 / 0.35),
-      0 6px 10px rgb(0 0 0 / 0.35),
-      0 30px 60px rgb(0 0 0 / 0.5);
+    box-shadow: 0 18px 50px rgb(0 0 0 / 0.45);
   }
 
-  /* Faceplate: frosted panel screwed onto the case. */
+  .micro-light .micro-body,
+  .micro-light.micro-body {
+    background: #fbfbfd;
+    border-color: #e7e7ee;
+    box-shadow:
+      0 2px 6px rgb(20 22 40 / 0.06),
+      0 24px 60px rgb(20 22 40 / 0.12);
+  }
+
+  /* Faceplate: flush with the case; the body carries the look. */
   .micro-plate {
     position: relative;
-    border-radius: 24px;
-    background:
-      repeating-linear-gradient(90deg, rgb(255 255 255 / 0.012) 0 1px, transparent 1px 3px),
-      linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(0 0 0 / 0.12)), var(--key-face);
-    border: 1px solid var(--hairline);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.07),
-      inset 0 0 24px rgb(0 0 0 / 0.28);
+    border-radius: 28px;
+    background: transparent;
   }
 
   /* Hex screws in the plate corners. */
@@ -251,9 +253,14 @@ body {
     height: 11px;
     border-radius: 50%;
     background: radial-gradient(circle at 34% 30%, #565c66, #23262c 62%, #101216);
+    box-shadow: inset 0 -1px 1px rgb(0 0 0 / 0.7);
+  }
+
+  .micro-light .micro-screw {
+    background: radial-gradient(circle at 34% 30%, #494c55, #26282e 62%, #17181d);
     box-shadow:
-      inset 0 -1px 1px rgb(0 0 0 / 0.7),
-      0 1px 0 rgb(255 255 255 / 0.06);
+      inset 0 -1px 1px rgb(0 0 0 / 0.55),
+      0 0 0 3px #ececf2;
   }
 
   .micro-screw::before {
@@ -272,91 +279,223 @@ body {
   /* Silkscreened labels: etched, quiet, uppercase mono. */
   .silkscreen {
     font-family: var(--font-mono);
-    font-size: 8px;
+    font-size: 9px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--ink-3);
-    opacity: 0.55;
+    opacity: 0.6;
     user-select: none;
+  }
+
+  .micro-light .silkscreen {
+    color: #8e8e99;
+    opacity: 0.9;
   }
 
   .silkscreen-vert {
     writing-mode: vertical-rl;
   }
 
-  /* The switch housing: a recess the cap sits inside. */
+  /* The switch housing: a soft recess the cap sits inside. */
   .micro-socket {
     position: relative;
-    border-radius: 14px;
-    background: linear-gradient(180deg, rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.16));
-    box-shadow:
-      inset 0 2px 4px rgb(0 0 0 / 0.55),
-      inset 0 -1px 0 rgb(255 255 255 / 0.05);
-    padding: 4px;
+    border-radius: 18px;
+    background: rgb(0 0 0 / 0.24);
+    padding: 5px;
   }
 
-  /* The keycap riding in the socket. Press physics are asymmetric like a
-     real switch: a fast 45 ms down-stroke, then a sprung release that
-     overshoots a hair before settling. The skirt (solid offset shadow) is
-     the cap's extruded side wall; it collapses on bottom-out. */
+  .micro-light .micro-socket {
+    background: #f0f0f5;
+  }
+
+  /* LED glow pooling under a translucent cap. --glow is the status color. */
+  .micro-glow {
+    position: absolute;
+    inset: -10px;
+    border-radius: 24px;
+    background: radial-gradient(55% 55% at 50% 52%, var(--glow) 0%, transparent 72%);
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  /* Frosted keycap: translucent, blurring the LED beneath it. Flat press —
+     the cap dips and its shadow tightens, no fake perspective. */
   .micro-cap {
     position: relative;
     width: 100%;
     height: 100%;
-    border-radius: 10px;
-    background:
-      linear-gradient(180deg, rgb(255 255 255 / 0.1), rgb(0 0 0 / 0.18) 78%), var(--key-face);
-    border: 1px solid rgb(255 255 255 / 0.07);
+    border-radius: 13px;
+    background: rgb(255 255 255 / 0.06);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    border: 1px solid rgb(255 255 255 / 0.1);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.12),
-      inset 0 -1px 0 rgb(0 0 0 / 0.35),
-      0 3px 0 rgb(10 12 16 / 0.95),
-      0 4px 3px rgb(0 0 0 / 0.45),
-      0 8px 12px rgb(0 0 0 / 0.32);
+      inset 0 1px 0 rgb(255 255 255 / 0.1),
+      0 2px 4px rgb(0 0 0 / 0.35),
+      0 10px 20px rgb(0 0 0 / 0.25);
     transition:
-      transform 260ms cubic-bezier(0.18, 1.65, 0.4, 1),
-      box-shadow 260ms cubic-bezier(0.18, 1.65, 0.4, 1);
+      transform 220ms cubic-bezier(0.18, 1.55, 0.4, 1),
+      box-shadow 220ms cubic-bezier(0.18, 1.55, 0.4, 1);
     will-change: transform;
   }
 
-  /* Glossy sheen raking across the top face. */
-  .micro-cap::after {
-    content: '';
-    position: absolute;
-    inset: 1px;
-    border-radius: 9px;
-    background: linear-gradient(165deg, rgb(255 255 255 / 0.09), transparent 42%);
-    pointer-events: none;
+  .micro-light .micro-cap {
+    background: rgb(255 255 255 / 0.66);
+    border-color: rgb(20 22 40 / 0.08);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 1px 2px rgb(20 22 40 / 0.08),
+      0 8px 18px rgb(20 22 40 / 0.08);
   }
 
   .micro-cap:active:not(:disabled),
   .micro-cap[data-pressed='true'] {
-    transform: translateY(3px);
+    transform: translateY(2px) scale(0.985);
     transition-duration: 45ms;
     transition-timing-function: cubic-bezier(0.3, 0.6, 0.4, 1);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.06),
-      inset 0 2px 5px rgb(0 0 0 / 0.3),
-      0 0 0 rgb(10 12 16 / 0.95),
-      0 1px 2px rgb(0 0 0 / 0.55);
+      inset 0 1px 3px rgb(0 0 0 / 0.25),
+      0 1px 2px rgb(0 0 0 / 0.3);
+  }
+
+  .micro-light .micro-cap:active:not(:disabled),
+  .micro-light .micro-cap[data-pressed='true'] {
+    box-shadow:
+      inset 0 1px 3px rgb(20 22 40 / 0.12),
+      0 1px 2px rgb(20 22 40 / 0.1);
+  }
+
+  /* Circular outline command button, straight from the reference sheet. */
+  .micro-round {
+    position: relative;
+    border-radius: 9999px;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1.5px solid rgb(255 255 255 / 0.16);
+    transition:
+      transform 200ms cubic-bezier(0.18, 1.55, 0.4, 1),
+      background-color 200ms ease;
+  }
+
+  .micro-light .micro-round {
+    border-color: rgb(20 22 40 / 0.2);
+    background: #fff;
+    box-shadow:
+      0 1px 2px rgb(20 22 40 / 0.07),
+      0 6px 14px rgb(20 22 40 / 0.06);
+  }
+
+  .micro-round:active:not(:disabled) {
+    transform: scale(0.92);
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  .micro-light .micro-round:active:not(:disabled) {
+    background: #f2f2f7;
+  }
+
+  /* Joystick: dashed service-outline zone with a black knob inside. */
+  .micro-stick-zone {
+    position: relative;
+    border-radius: 20px;
+    border: 1.5px dashed rgb(255 255 255 / 0.22);
+  }
+
+  .micro-light .micro-stick-zone {
+    border-color: rgb(20 22 40 / 0.3);
+  }
+
+  .micro-stick-knob {
+    position: absolute;
+    inset: 12%;
+    border-radius: 9999px;
+    background: radial-gradient(circle at 36% 30%, #34363c, #101114 70%);
+    box-shadow:
+      inset 0 1px 1px rgb(255 255 255 / 0.18),
+      0 4px 10px rgb(0 0 0 / 0.45);
+    transition: transform 180ms cubic-bezier(0.2, 1.6, 0.4, 1);
+  }
+
+  .micro-light .micro-stick-knob {
+    box-shadow:
+      inset 0 1px 1px rgb(255 255 255 / 0.22),
+      0 4px 10px rgb(20 22 40 / 0.3);
+  }
+
+  /* The mic pill. */
+  .micro-pill {
+    border-radius: 9999px;
+  }
+
+  /* The reasoning knob: a clean cylinder with a cut notch. */
+  .micro-knob {
+    border-radius: 9999px;
+    background: radial-gradient(circle at 34% 30%, #33363e, #15171c 72%);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.12),
+      0 6px 14px rgb(0 0 0 / 0.4);
+  }
+
+  .micro-light .micro-knob {
+    background: linear-gradient(150deg, #ffffff 45%, #ededf2 100%);
+    border-color: rgb(20 22 40 / 0.1);
+    box-shadow:
+      inset 0 1px 0 #fff,
+      inset 0 -10px 16px rgb(20 22 40 / 0.06),
+      0 1px 2px rgb(20 22 40 / 0.1),
+      0 10px 22px rgb(20 22 40 / 0.12);
+  }
+
+  .micro-knob-notch {
+    position: absolute;
+    left: calc(50% - 2px);
+    top: 7%;
+    width: 4px;
+    height: 26%;
+    border-radius: 9999px;
+    background: var(--brass);
+  }
+
+  .micro-light .micro-knob-notch {
+    background: #1b1c22;
+  }
+
+  /* Decorative LED cluster and port dots beside the mic. */
+  .micro-deco-dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0.5;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .micro-cap {
+    .micro-cap,
+    .micro-round,
+    .micro-stick-knob {
       transition-duration: 1ms;
     }
   }
 
-  /* E-ink style readout strip. */
+  /* Readout strip: dark glass in both builds — it is a screen. */
   .micro-lcd {
-    border-radius: 8px;
-    background: linear-gradient(180deg, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.32));
-    border: 1px solid rgb(0 0 0 / 0.6);
-    box-shadow:
-      inset 0 2px 5px rgb(0 0 0 / 0.6),
-      0 1px 0 rgb(255 255 255 / 0.05);
+    border-radius: 12px;
+    background: #0b0c0f;
+    border: 1px solid rgb(0 0 0 / 0.65);
+    box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.55);
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
+  }
+
+  .micro-light .micro-lcd {
+    border-color: #e3e3ea;
+    box-shadow:
+      inset 0 2px 6px rgb(0 0 0 / 0.5),
+      0 1px 2px rgb(20 22 40 / 0.08);
   }
 }
 

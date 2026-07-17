@@ -103,7 +103,7 @@ const DEFAULT_SETTINGS: DeckSettings = {
   haptics: true,
   leftHand: false,
   voiceLang: 'en-US',
-  rendering: '3d',
+  rendering: 'classic',
 };
 
 export function activeTheme(settings: DeckSettings): ThemeTokens {

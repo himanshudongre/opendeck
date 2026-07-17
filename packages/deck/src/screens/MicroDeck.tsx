@@ -1,7 +1,7 @@
 import type { Session } from '@opendeck/protocol';
 import { MessageCirclePlus, Mic } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { StatusDot, statusColorVar } from '../components/StatusDot.js';
 import { controller } from '../lib/controller.js';
 import { statusLabel } from '../lib/format.js';
@@ -40,7 +40,25 @@ function usePress(): { down: () => void; up: () => void } {
   };
 }
 
-/** One agent key: a frosted cap with the session's LED burning under it. */
+/** Porcelain build under light themes, graphite under dark ones. */
+function useLightBuild(): boolean {
+  const themeName = useDeck((state) => state.settings.themeName);
+  const customTheme = useDeck((state) => state.settings.customTheme);
+  return useMemo(() => {
+    if (typeof getComputedStyle === 'undefined') return false;
+    const raw = getComputedStyle(document.documentElement)
+      .getPropertyValue('--surface-0')
+      .trim()
+      .replace('#', '');
+    if (raw.length < 6) return false;
+    const r = parseInt(raw.slice(0, 2), 16) / 255;
+    const g = parseInt(raw.slice(2, 4), 16) / 255;
+    const b = parseInt(raw.slice(4, 6), 16) / 255;
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.5;
+  }, [themeName, customTheme]);
+}
+
+/** One agent key: a frosted cap with the session's LED glowing beneath it. */
 function AgentKey({
   session,
   selected,
@@ -56,9 +74,17 @@ function AgentKey({
   const timer = useRef<number | undefined>(undefined);
   const longPressed = useRef(false);
   const color = session ? statusColorVar(session.status) : undefined;
+  const waiting = session?.status === 'waiting_permission' || session?.status === 'waiting_input';
 
   return (
     <div className="micro-socket aspect-square">
+      {session && (
+        <span
+          aria-hidden
+          className={`micro-glow ${waiting ? 'pulse-waiting' : ''}`}
+          style={{ '--glow': color ?? 'transparent' } as React.CSSProperties}
+        />
+      )}
       <button
         type="button"
         disabled={session === undefined}
@@ -67,12 +93,7 @@ function AgentKey({
         }
         className="micro-cap block disabled:cursor-default"
         style={
-          session
-            ? {
-                background: `radial-gradient(90% 90% at 50% 62%, ${color ?? ''}26, transparent 70%), linear-gradient(180deg, rgb(255 255 255 / 0.09), rgb(0 0 0 / 0.16)), var(--key-face)`,
-                borderColor: selected ? 'var(--brass)' : 'rgb(255 255 255 / 0.06)',
-              }
-            : {}
+          selected ? { borderColor: 'var(--brass)', boxShadow: '0 0 0 1.5px var(--brass)' } : {}
         }
         onPointerDown={() => {
           if (!session) return;
@@ -95,15 +116,12 @@ function AgentKey({
       >
         <span className="flex h-full w-full items-center justify-center">
           {session ? (
-            <StatusDot status={session.status} size={13} />
+            <StatusDot status={session.status} size={11} />
           ) : (
             <span
               aria-hidden
-              className="h-2.5 w-2.5 rounded-full"
-              style={{
-                background: 'rgb(0 0 0 / 0.35)',
-                boxShadow: 'inset 0 1px 2px rgb(0 0 0 / 0.6)',
-              }}
+              className="h-2 w-2 rounded-full"
+              style={{ background: 'rgb(127 127 140 / 0.25)' }}
             />
           )}
         </span>
@@ -112,7 +130,7 @@ function AgentKey({
   );
 }
 
-/** A command key: light cap, icon, one action. */
+/** A circular outline command button — the reference sheet's icon buttons. */
 function CommandKey({
   label,
   onPress,
@@ -126,12 +144,12 @@ function CommandKey({
 }) {
   const press = usePress();
   return (
-    <div className="micro-socket">
+    <div className="flex items-center justify-center">
       <button
         type="button"
         aria-label={label}
         disabled={disabled}
-        className="micro-cap flex h-11 w-full items-center justify-center disabled:opacity-45"
+        className="micro-round h-12 w-12 disabled:opacity-40"
         onPointerDown={() => {
           if (!disabled) press.down();
         }}
@@ -148,7 +166,7 @@ function CommandKey({
   );
 }
 
-/** The reasoning knob: a knurled dial that physically rotates to its detent. */
+/** The reasoning knob: a clean dial with a cut notch; slide or arrow-key it. */
 function MicroKnob({ target }: { target: Session | undefined }) {
   const settings = useDeck((state) => state.settings);
   const reduced = useReducedMotion() ?? false;
@@ -186,12 +204,7 @@ function MicroKnob({ target }: { target: Session | undefined }) {
           ? {}
           : { 'aria-valuetext': axis.values[valueIndex] })}
         tabIndex={0}
-        className={`relative aspect-square w-full touch-none rounded-full ${canDial ? '' : 'opacity-50'}`}
-        style={{
-          background: 'radial-gradient(circle at 32% 28%, #3a3f49, #191c22 70%)',
-          boxShadow:
-            'inset 0 1px 0 rgb(255 255 255 / 0.12), 0 4px 7px rgb(0 0 0 / 0.55), 0 1px 0 rgb(0 0 0 / 0.6)',
-        }}
+        className={`micro-knob relative aspect-square w-full touch-none ${canDial ? '' : 'opacity-50'}`}
         onPointerDown={(event) => {
           dragging.current = true;
           event.currentTarget.setPointerCapture(event.pointerId);
@@ -213,34 +226,12 @@ function MicroKnob({ target }: { target: Session | undefined }) {
       >
         <motion.span
           aria-hidden
-          className="absolute inset-0 rounded-full"
-          style={{
-            background:
-              'repeating-conic-gradient(from 0deg, rgb(255 255 255 / 0.07) 0deg 3deg, transparent 3deg 9deg)',
-          }}
+          className="absolute inset-0"
           animate={{ rotate: knobDeg }}
           transition={reduced ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 20 }}
-        />
-        <span
-          aria-hidden
-          className="absolute inset-[18%] rounded-full"
-          style={{
-            background: 'radial-gradient(circle at 35% 30%, #343943, #14171c 75%)',
-            boxShadow: 'inset 0 1px 1px rgb(255 255 255 / 0.1), inset 0 -2px 4px rgb(0 0 0 / 0.5)',
-          }}
-        />
-        <motion.span
-          aria-hidden
-          className="absolute left-1/2 top-[13%] h-[13%] w-[3px] rounded-full"
-          style={{
-            background: 'var(--brass)',
-            boxShadow: '0 0 6px rgb(216 179 106 / 0.7)',
-            transformOrigin: '50% 285%',
-            x: '-50%',
-          }}
-          animate={{ rotate: knobDeg }}
-          transition={reduced ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 20 }}
-        />
+        >
+          <span aria-hidden className="micro-knob-notch" />
+        </motion.span>
       </div>
       <button
         type="button"
@@ -259,7 +250,7 @@ function MicroKnob({ target }: { target: Session | undefined }) {
   );
 }
 
-/** The joystick: a glossy stick that tilts under the finger and flicks workflows. */
+/** The joystick: a black knob in a dashed service outline; flick a workflow. */
 function MicroStick({ targetId }: { targetId: string | undefined }) {
   const settings = useDeck((state) => state.settings);
   const { fire } = useJogFire(targetId);
@@ -281,16 +272,15 @@ function MicroStick({ targetId }: { targetId: string | undefined }) {
     <div
       role="group"
       aria-label="Joystick: flick to run a workflow"
-      className={`relative aspect-square w-full touch-none rounded-full ${targetId === undefined ? 'opacity-50' : ''}`}
-      style={{ border: '2px dashed rgb(255 255 255 / 0.14)' }}
+      className={`micro-stick-zone aspect-square w-full touch-none ${targetId === undefined ? 'opacity-50' : ''}`}
       onPointerDown={(event) => {
         origin.current = { x: event.clientX, y: event.clientY };
         event.currentTarget.setPointerCapture(event.pointerId);
       }}
       onPointerMove={(event) => {
         if (!origin.current) return;
-        const dx = Math.max(-22, Math.min(22, event.clientX - origin.current.x));
-        const dy = Math.max(-22, Math.min(22, event.clientY - origin.current.y));
+        const dx = Math.max(-20, Math.min(20, event.clientX - origin.current.x));
+        const dy = Math.max(-20, Math.min(20, event.clientY - origin.current.y));
         setTilt({ x: dx, y: dy });
       }}
       onPointerUp={(event) => {
@@ -303,26 +293,17 @@ function MicroStick({ targetId }: { targetId: string | undefined }) {
     >
       <motion.span
         aria-hidden
-        className="absolute inset-[12%] rounded-full"
-        style={{
-          background: 'radial-gradient(circle at 34% 26%, #4a505b, #0c0e12 68%)',
-          boxShadow: '0 5px 9px rgb(0 0 0 / 0.65), inset 0 1px 1px rgb(255 255 255 / 0.16)',
-        }}
-        animate={{
-          x: tilt.x * 0.35,
-          y: tilt.y * 0.35,
-          rotateX: -tilt.y * 0.8,
-          rotateY: tilt.x * 0.8,
-        }}
+        className="micro-stick-knob"
+        animate={{ x: tilt.x * 0.4, y: tilt.y * 0.4 }}
         transition={
-          reduced ? { duration: 0 } : { type: 'spring', stiffness: 460, damping: 26, mass: 0.6 }
+          reduced ? { duration: 0 } : { type: 'spring', stiffness: 460, damping: 24, mass: 0.6 }
         }
       />
     </div>
   );
 }
 
-/** Push-to-talk bar with a listening LED and live transcript. */
+/** Push-to-talk pill with a listening LED and live transcript. */
 function MicBar({ targetId }: { targetId: string | undefined }) {
   const settings = useDeck((state) => state.settings);
   const [listening, setListening] = useState(false);
@@ -350,7 +331,7 @@ function MicBar({ targetId }: { targetId: string | undefined }) {
   };
 
   return (
-    <div className="micro-socket relative flex-1">
+    <div className="relative flex-1">
       <button
         type="button"
         aria-label={
@@ -360,7 +341,7 @@ function MicBar({ targetId }: { targetId: string | undefined }) {
               : 'Hold to talk'
             : 'Voice is unavailable on this connection. Enable voice in Settings.'
         }
-        className={`micro-cap flex h-11 w-full items-center justify-center gap-2 ${available ? '' : 'opacity-45'}`}
+        className={`micro-cap micro-pill flex h-12 w-full items-center justify-center gap-2 ${available ? '' : 'opacity-45'}`}
         onPointerDown={begin}
         onPointerUp={() => {
           if (available) playKeyUp(settings.sound);
@@ -370,14 +351,14 @@ function MicBar({ targetId }: { targetId: string | undefined }) {
       >
         <Mic
           aria-hidden
-          size={14}
+          size={15}
           style={{ color: listening ? 'var(--st-waiting)' : 'var(--ink-2)' }}
         />
         <span
           aria-hidden
           className={`status-fade h-1 w-1 rounded-full ${listening ? 'pulse-waiting' : ''}`}
           style={{
-            background: listening ? 'var(--st-waiting)' : 'rgb(0 0 0 / 0.4)',
+            background: listening ? 'var(--st-waiting)' : 'rgb(127 127 140 / 0.35)',
             boxShadow: listening ? '0 0 6px var(--st-waiting)' : 'none',
           }}
         />
@@ -392,14 +373,17 @@ function MicBar({ targetId }: { targetId: string | undefined }) {
 }
 
 /**
- * The whole deck as one rendered device: six live agent keys, a reasoning
- * knob, a workflow joystick, command keys, push-to-talk — the Codex Micro
- * control grammar with the advantages only a screen has (a readout strip,
- * unlimited agents via pages, full diffs one long-press away).
+ * The whole deck as one flat product render — the reference-sheet look,
+ * viewed dead straight-on: frosted agent keys over LED glow, circular
+ * outline commands, dashed joystick, mic pill — plus the advantages only a
+ * screen has (a readout strip, unlimited agents via swipeable pages, full
+ * diffs one long-press away).
  */
 export function MicroDeck() {
   const setEditMode = useDeck((state) => state.setEditMode);
   const plateHold = useRef<number | undefined>(undefined);
+  const swipe = useRef<{ x: number; y: number } | undefined>(undefined);
+  const light = useLightBuild();
   const {
     attention,
     pending,
@@ -419,51 +403,62 @@ export function MicroDeck() {
   } = useMicroModel();
 
   return (
-    <div className="flex h-full items-center justify-center overflow-y-auto p-4">
-      <div className="micro-body w-full max-w-sm p-3">
+    <div className="flex h-full items-center justify-center overflow-y-auto p-3">
+      <div className={`micro-body w-full max-w-sm p-2.5 ${light ? 'micro-light' : ''}`}>
         <div
-          className="micro-plate px-5 pb-5 pt-4"
+          className="micro-plate px-5 pb-4 pt-3"
           onContextMenu={(event) => {
             event.preventDefault();
             setEditMode(true);
           }}
           onPointerDown={(event) => {
+            // Swipes anywhere on the plate page through agents; presses that
+            // start on a control never become swipes.
+            const onControl =
+              event.target instanceof Element &&
+              event.target.closest('button, [role="slider"], [role="group"]') !== null;
+            swipe.current = onControl ? undefined : { x: event.clientX, y: event.clientY };
             // Long-press on the bare plate opens edit mode (touch devices
             // don't fire contextmenu). Presses on controls cancel it.
             if (event.target === event.currentTarget) {
               plateHold.current = window.setTimeout(() => setEditMode(true), 600);
             }
           }}
-          onPointerUp={() => window.clearTimeout(plateHold.current)}
+          onPointerUp={(event) => {
+            window.clearTimeout(plateHold.current);
+            const start = swipe.current;
+            swipe.current = undefined;
+            if (!start || pageCount <= 1) return;
+            const dx = event.clientX - start.x;
+            const dy = event.clientY - start.y;
+            if (Math.abs(dx) > 56 && Math.abs(dy) < Math.abs(dx) * 0.6) {
+              const next = currentPage + (dx < 0 ? 1 : -1);
+              setPage(Math.max(0, Math.min(pageCount - 1, next)));
+            }
+          }}
           onPointerLeave={() => window.clearTimeout(plateHold.current)}
         >
           <span
             aria-hidden
-            className="micro-screw left-2.5 top-2.5"
+            className="micro-screw left-2 top-2"
             style={{ '--screw-angle': '38deg' } as React.CSSProperties}
           />
           <span
             aria-hidden
-            className="micro-screw right-2.5 top-2.5"
+            className="micro-screw right-2 top-2"
             style={{ '--screw-angle': '105deg' } as React.CSSProperties}
           />
           <span
             aria-hidden
-            className="micro-screw bottom-2.5 left-2.5"
+            className="micro-screw bottom-2 left-2"
             style={{ '--screw-angle': '150deg' } as React.CSSProperties}
           />
           <span
             aria-hidden
-            className="micro-screw bottom-2.5 right-2.5"
+            className="micro-screw bottom-2 right-2"
             style={{ '--screw-angle': '75deg' } as React.CSSProperties}
           />
 
-          <p
-            aria-hidden
-            className="silkscreen silkscreen-vert absolute left-1.5 top-1/2 -translate-y-1/2"
-          >
-            opendeck · 2026
-          </p>
           <p
             aria-hidden
             className="silkscreen silkscreen-vert absolute right-1.5 top-1/2 -translate-y-1/2"
@@ -471,16 +466,23 @@ export function MicroDeck() {
             you can just ship things
           </p>
 
+          {/* North marker, straight off the reference sheet. */}
+          <p aria-hidden className="mb-1 text-center text-[13px] leading-none text-ink-3">
+            ↑
+          </p>
+
           {/* Readout strip: what the hardware wishes it had. */}
-          <div className="micro-lcd mb-4 px-3 py-1.5">
+          <div className="micro-lcd mb-4 px-3 py-2">
             <p
-              className="truncate text-[11px]"
-              style={{ color: pending ? 'var(--st-waiting)' : 'var(--ink-1)' }}
+              className="truncate text-[12px]"
+              style={{ color: pending ? 'var(--st-waiting)' : '#d7dbe2' }}
             >
               {lcdLine}
             </p>
             <div className="flex items-center justify-between">
-              <p className="text-[9px] text-ink-3">{lcdStats}</p>
+              <p className="text-[10px]" style={{ color: '#8a909c' }}>
+                {lcdStats}
+              </p>
               <span
                 role="status"
                 aria-label={`Connection: ${connection}`}
@@ -530,22 +532,29 @@ export function MicroDeck() {
           </div>
 
           {pageCount > 1 && (
-            <div className="mt-2 flex justify-center gap-1.5">
+            <div className="mt-2 flex justify-center">
               {Array.from({ length: pageCount }, (_, index) => (
                 <button
                   key={index}
                   type="button"
                   aria-label={`Agent page ${String(index + 1)}`}
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ background: index === currentPage ? 'var(--brass)' : 'var(--hairline)' }}
+                  className="flex h-8 w-8 items-center justify-center"
                   onClick={() => setPage(index)}
-                />
+                >
+                  <span
+                    aria-hidden
+                    className="h-2 w-2 rounded-full"
+                    style={{
+                      background: index === currentPage ? 'var(--brass)' : 'var(--hairline)',
+                    }}
+                  />
+                </button>
               ))}
             </div>
           )}
 
-          {/* Row C: command keys — driven by layout.actionKeys, so every
-              cap's icon and action is rebindable via layout JSON. */}
+          {/* Row C: circular command buttons — driven by layout.actionKeys,
+              so every button's icon and action is rebindable via layout JSON. */}
           <div className="mt-4 grid grid-cols-4 gap-3">
             {commandKeys.map((binding) => {
               const Icon = keyIcon(binding.icon);
@@ -562,7 +571,7 @@ export function MicroDeck() {
                   onPress={() => fireBinding(binding)}
                 >
                   {Icon ? (
-                    <Icon aria-hidden size={15} style={{ color: accentVar }} />
+                    <Icon aria-hidden size={17} style={{ color: accentVar }} />
                   ) : (
                     <span
                       aria-hidden
@@ -580,22 +589,20 @@ export function MicroDeck() {
               disabled={attention === undefined}
               onPress={() => attention && openFocus(attention.id)}
             >
-              <span aria-hidden className="font-data text-[13px]" style={{ color: 'var(--ink-2)' }}>
+              <span aria-hidden className="font-data text-[15px]" style={{ color: 'var(--ink-2)' }}>
                 ↗
               </span>
             </CommandKey>
           </div>
 
-          {/* Row D: connection dot · mic bar · new chat */}
-          <div className="mt-3 flex items-center gap-3">
-            <span
-              aria-hidden
-              className="h-3.5 w-3.5 rounded-full"
-              style={{
-                background: 'radial-gradient(circle at 35% 30%, #22262d, #0a0c0f)',
-                boxShadow: 'inset 0 1px 2px rgb(0 0 0 / 0.7), 0 1px 0 rgb(255 255 255 / 0.05)',
-              }}
-            />
+          {/* Row D: deco LED cluster · mic pill · new chat */}
+          <div className="mt-4 flex items-center gap-3">
+            <span aria-hidden className="grid grid-cols-2 gap-1 text-ink-3">
+              <span className="micro-deco-dot" />
+              <span className="micro-deco-dot" />
+              <span className="micro-deco-dot" />
+              <span className="micro-deco-dot" />
+            </span>
             <MicBar targetId={attention?.id} />
             <CommandKey
               label="Start a new Claude session"
@@ -603,7 +610,7 @@ export function MicroDeck() {
                 controller.action({ kind: 'new_session', args: { harness: 'claude' } })
               }
             >
-              <MessageCirclePlus aria-hidden size={15} style={{ color: 'var(--ink-2)' }} />
+              <MessageCirclePlus aria-hidden size={16} style={{ color: 'var(--ink-2)' }} />
             </CommandKey>
           </div>
 

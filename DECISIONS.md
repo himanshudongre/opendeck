@@ -199,6 +199,8 @@ Pair: single centered keycap panel — wordmark, one-line explanation, camera-le
 
 - **Theme-driven hardware builds** (2026-07-17): the 3D device derives a `DevicePalette` from the active theme's CSS tokens with a luminance test — light themes (Workshop) render the cream Codex-Micro-faithful build (warm plastic caps, silver knurled knob, dark glass display, product-shot lighting), dark themes keep anodized graphite. Both get the real device's signature: per-key RGB underglow halos bleeding onto the plate (additive blending on dark, normal on cream), pulsing with waiting states and squeezing brighter under a press. Cream needed a full exposure pass — env 0.5, warm key light 1.05, bloom threshold 0.99 — the first attempt at "brighter room" blew the scene to white; cream plastic reads through contrast, not luminance.
 
+- **The flat product render is the default face** (2026-07-17, after direct user feedback with a reference sheet): perspective camera angles wasted screen and read as "eye candy"; the reference mock — dead straight-on, crisp, flat — is both more faithful to hardware product design and more usable. The CSS face was rebuilt to that language: frosted translucent caps (`backdrop-filter` blur) over `--glow` LED pools, circular outline command buttons, a dashed-outline joystick zone with a black knob, clean dial with a cut notch, mic pill, corner screws, ↑ north marker. Two builds switched by surface luminance: porcelain (light themes) and graphite (dark). Swipe-to-page works on the plate. `rendering` defaults to `classic`; the WebGL face stays one Settings tap away, and `usetest.mjs` pins `rendering: '3d'` since it exercises WebGL hit-testing.
+
 ## Phase log
 
 - [x] Phase 0 — Recon

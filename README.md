@@ -37,22 +37,22 @@ running hub from any terminal.
 OpenAI's Codex Micro sells two real things: ambient glanceable status and
 one-press tactile control. It's $230, it's six keys, and it only speaks Codex.
 
-|             | OpenDeck                                                                                                                                                                           | Codex Micro            |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| Price       | $0, MIT-licensed                                                                                                                                                                   | $230, limited run      |
-| Agents      | Unlimited tiles                                                                                                                                                                    | 6 RGB keys             |
-| Status      | Color + harness, repo/branch, elapsed, current tool, cost                                                                                                                          | Color                  |
-| Approvals   | The actual command or unified diff, one tap                                                                                                                                        | A blinking key         |
-| Harnesses   | Claude Code + Codex now; one adapter interface for more                                                                                                                            | Codex                  |
-| Controls    | Bindable action keys, dial with detents, jog pad, voice key                                                                                                                        | 13 keys, dial, stick   |
-| Device mode | **The default**: a real-time WebGL device — clearcoat keycaps over glowing LEDs, knurled reasoning knob (minimal→xhigh), sprung joystick, e-ink readout, bloom and studio lighting | The real thing (fair!) |
-| Feel        | Sprung key travel with overshoot, haptics, layered switch acoustics (clicky/thocky/silent) — or import a recording of your own favorite switch                                     | Real keycaps (fair!)   |
-| Where       | Any browser on your LAN, installable PWA, always-awake                                                                                                                             | Your desk              |
-| Cloud       | None. LAN only, no telemetry, no accounts                                                                                                                                          | —                      |
+|             | OpenDeck                                                                                                                                                                                                                    | Codex Micro            |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| Price       | $0, MIT-licensed                                                                                                                                                                                                            | $230, limited run      |
+| Agents      | Unlimited tiles                                                                                                                                                                                                             | 6 RGB keys             |
+| Status      | Color + harness, repo/branch, elapsed, current tool, cost                                                                                                                                                                   | Color                  |
+| Approvals   | The actual command or unified diff, one tap                                                                                                                                                                                 | A blinking key         |
+| Harnesses   | Claude Code + Codex now; one adapter interface for more                                                                                                                                                                     | Codex                  |
+| Controls    | Bindable action keys, dial with detents, jog pad, voice key                                                                                                                                                                 | 13 keys, dial, stick   |
+| Device mode | **The default**: a crisp straight-on product render — frosted keys over live LED glow, reasoning knob (minimal→xhigh), joystick workflows, readout strip; a WebGL face with bloom and studio lighting one Settings tap away | The real thing (fair!) |
+| Feel        | Sprung key travel with overshoot, haptics, layered switch acoustics (clicky/thocky/silent) — or import a recording of your own favorite switch                                                                              | Real keycaps (fair!)   |
+| Where       | Any browser on your LAN, installable PWA, always-awake                                                                                                                                                                      | Your desk              |
+| Cloud       | None. LAN only, no telemetry, no accounts                                                                                                                                                                                   | —                      |
 
 <p align="center">
-  <img src="docs/deck-micro.png" alt="Micro mode in graphite: the WebGL device with RGB underglow pooling beneath each agent key, knurled knob, joystick, command caps and a live readout strip" width="300" />
-  <img src="docs/deck-micro-cream.png" alt="Micro mode in the Workshop theme: the cream hardware homage — warm plastic caps with RGB light bleeding from underneath, silver knurled knob, dark glass display" width="300" />
+  <img src="docs/deck-micro.png" alt="Micro mode in graphite: a flat straight-on product render — frosted keys glowing with each agent's status color, outline command buttons, dashed joystick zone and a live readout strip" width="300" />
+  <img src="docs/deck-micro-cream.png" alt="Micro mode in the Workshop theme: the porcelain build — white device, frosted caps with soft LED glow beneath, white knob with a black notch, circular outline commands and a mic pill" width="300" />
 </p>
 
 <p align="center">
@@ -148,12 +148,12 @@ one-time cert trust.
 
 ## Make it yours
 
-The deck opens in **Micro mode**: the whole surface as one device, rendered
-in real time with three.js — physically-based keycaps over glowing LEDs, a
-knurled reasoning knob, a spring-loaded joystick, command caps, a
-push-to-talk bar, and bloom where the light actually is. Long-press the
-faceplate to switch layouts (grid, tablet, desktop strip) or rebind
-anything:
+The deck opens in **Micro mode**: the whole surface as one device, drawn
+flat and dead straight-on like a product sheet — frosted keys with each
+agent's LED glowing through, a reasoning knob, a dashed-outline joystick,
+circular command buttons, a push-to-talk pill. Swipe the plate to page
+through agents; long-press the faceplate to switch layouts (grid, tablet,
+desktop strip) or rebind anything:
 
 - **Command keys** are data: each cap is `{ icon, label, kind, args }` in
   layout JSON, with icons from a curated set (`packages/deck/src/state/icons.ts`).
@@ -170,9 +170,10 @@ anything:
   `custom` lets you import a recording of your own favorite switch: press
   sound plus an optional release sound, stored locally in the browser.
   Something no injection-molded pad will ever do.
-- **Rendering** is your call: the WebGL device face, or a lightweight CSS
-  face (Settings → Device rendering). The deck falls back to CSS on its own
-  when WebGL2 is missing or the OS asks for reduced motion.
+- **Rendering** is your call: the flat product render is the default, and a
+  real-time WebGL face (three.js — sprung keycaps, bloom, studio lighting)
+  is one tap away in Settings → Device rendering. The 3D face falls back to
+  the flat one on its own when WebGL2 is missing or reduced motion is set.
 
 ## Contributing
 

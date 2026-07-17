@@ -134,7 +134,7 @@ async function screenshots() {
           haptics: true,
           leftHand: false,
           voiceLang: 'en-US',
-          rendering: '3d',
+          rendering: 'classic',
         }),
       );
     });
@@ -217,7 +217,7 @@ async function demoGif() {
     // hero permission with the physical check key, watch the agent go green.
     await page.getByRole('slider').waitFor({ timeout: 40_000 });
     await page
-      .getByText(/needs approval/)
+      .getByText(/approve Edit\?/)
       .first()
       .waitFor({ timeout: 40_000 });
     await page.waitForTimeout(2600);

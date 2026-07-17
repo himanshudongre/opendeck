@@ -72,6 +72,20 @@ try {
     hasTouch: true,
   });
   const page = await context.newPage();
+  // This suite exercises the WebGL face specifically; pin it on.
+  await context.addInitScript(() => {
+    localStorage.setItem(
+      'opendeck.settings',
+      JSON.stringify({
+        themeName: 'graphite',
+        sound: 'clicky',
+        haptics: true,
+        leftHand: false,
+        voiceLang: 'en-US',
+        rendering: '3d',
+      }),
+    );
+  });
   await page.goto(URL);
   await page.getByRole('slider').waitFor({ timeout: 40_000 });
   await page.waitForFunction(() => Boolean(globalThis.__OPENDECK_SCENE__), null, {

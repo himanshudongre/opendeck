@@ -226,11 +226,11 @@ async function screenshots() {
   }
 }
 
-async function demoGif() {
+async function demoGif(themeName, gifName) {
   const hub = startHub(2);
   await waitForHealth();
   const browser = await chromium.launch();
-  const videoDir = join(scratch, 'video');
+  const videoDir = join(scratch, `video-${themeName}`);
   try {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },
@@ -238,19 +238,30 @@ async function demoGif() {
       hasTouch: true,
       recordVideo: { dir: videoDir, size: { width: 390, height: 844 } },
     });
+    await context.addInitScript((theme) => {
+      localStorage.setItem(
+        'opendeck.settings',
+        JSON.stringify({
+          themeName: theme,
+          sound: 'clicky',
+          haptics: true,
+          leftHand: false,
+          voiceLang: 'en-US',
+          rendering: 'classic',
+        }),
+      );
+    }, themeName);
     const page = await context.newPage();
     await page.goto(URL);
 
     // Micro mode is the default: watch the LEDs come alive, approve the
-    // hero permission with the physical check key, watch the agent go green.
+    // hero permission with the ✓ key, watch the agent go green.
     await page.getByRole('slider').waitFor({ timeout: 40_000 });
     await page
       .getByText(/approve Edit\?/)
       .first()
       .waitFor({ timeout: 40_000 });
     await page.waitForTimeout(2600);
-    // The 3D face mirrors controls in a visually-hidden layer; dispatch the
-    // click straight to it (sr-only elements fail pointer hit-testing).
     await page.getByRole('button', { name: 'Approve Edit' }).dispatchEvent('click');
     await page.waitForTimeout(4500);
 
@@ -259,9 +270,9 @@ async function demoGif() {
     const webm = video === null ? undefined : await video.path();
     if (webm === undefined) throw new Error('no video recorded');
 
-    const gifPath = join(docsDir, 'demo.gif');
-    const palette = join(scratch, 'palette.png');
-    const filters = 'fps=10,scale=390:-1:flags=lanczos';
+    const gifPath = join(docsDir, gifName);
+    const palette = join(scratch, `palette-${themeName}.png`);
+    const filters = 'fps=12,scale=390:-1:flags=lanczos';
     let result = spawnSync('ffmpeg', ['-y', '-i', webm, '-vf', `${filters},palettegen`, palette]);
     if (result.status !== 0) throw new Error('ffmpeg palettegen failed');
     result = spawnSync('ffmpeg', [
@@ -275,7 +286,7 @@ async function demoGif() {
       gifPath,
     ]);
     if (result.status !== 0) throw new Error('ffmpeg paletteuse failed');
-    out('wrote docs/demo.gif');
+    out(`wrote docs/${gifName}`);
   } finally {
     await browser.close();
     hub.kill('SIGTERM');
@@ -285,6 +296,7 @@ async function demoGif() {
 mkdirSync(docsDir, { recursive: true });
 mkdirSync(scratch, { recursive: true });
 await screenshots();
-await demoGif();
+await demoGif('graphite', 'demo.gif');
+await demoGif('workshop', 'demo-cream.gif');
 rmSync(scratch, { recursive: true, force: true });
 out('done');

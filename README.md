@@ -9,7 +9,8 @@
 </p>
 
 <p align="center">
-  <img src="docs/demo.gif" alt="OpenDeck demo: a phone-sized deck of glowing agent tiles; a permission card with a real diff is approved with one tap and the agent runs to green" width="390" />
+  <img src="docs/demo.gif" alt="OpenDeck demo, graphite: a phone-sized device of glowing agent keys; a permission is approved with the check key and the agent runs to green" width="300" />
+  <img src="docs/demo-cream.gif" alt="OpenDeck demo, porcelain: the white build of the same device approving a permission" width="300" />
 </p>
 
 ## 30-second quickstart

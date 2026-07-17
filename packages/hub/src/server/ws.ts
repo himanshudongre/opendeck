@@ -133,15 +133,26 @@ export function attachWs(server: HttpServer | HttpsServer, deps: WsDeps): WebSoc
   function greet(conn: ClientConn, lastSeq: number | undefined): void {
     if (lastSeq === undefined || Number.isNaN(lastSeq)) {
       send(conn, serverMsg('hello', deps.hub.helloPayload('fresh'), deps.hub.currentSeq()));
+      resendPendingPermissions(conn);
       return;
     }
     const replay = deps.hub.replaySince(lastSeq);
     if (replay === undefined) {
       send(conn, serverMsg('hello', deps.hub.helloPayload('snapshot'), deps.hub.currentSeq()));
+      resendPendingPermissions(conn);
       return;
     }
     send(conn, serverMsg('hello', deps.hub.helloPayload('resumed'), deps.hub.currentSeq()));
     for (const msg of replay) send(conn, msg);
+  }
+
+  /** Fresh/snapshot clients missed live permission_request broadcasts. */
+  function resendPendingPermissions(conn: ClientConn): void {
+    for (const session of deps.hub.snapshot()) {
+      for (const request of deps.hub.pendingPermissionsFor(session.id)) {
+        send(conn, serverMsg('permission_request', request, deps.hub.currentSeq()));
+      }
+    }
   }
 
   function handleMessage(conn: ClientConn, data: Buffer | ArrayBuffer | Buffer[]): void {

@@ -1,0 +1,205 @@
+@import 'tailwindcss';
+
+/*
+ * Backlit Hardware (SPEC §7). Tokens land on :root as CSS variables via
+ * applyTheme(); Tailwind consumes them through the @theme block, so every
+ * utility color is theme-reactive.
+ */
+:root {
+  --surface-0: #0e0f12;
+  --surface-1: #16181d;
+  --key-face: #1e2127;
+  --hairline: #2a2e36;
+  --ink-1: #e9ebee;
+  --ink-2: #9ba1ac;
+  --ink-3: #5c626d;
+  --brass: #d8b36a;
+  --st-thinking: #a78bfa;
+  --st-working: #4cc2ff;
+  --st-waiting: #ffb454;
+  --st-done: #3ecf8e;
+  --st-error: #ff5d5d;
+  --st-idle: #3a3f48;
+  --noise-opacity: 0.02;
+}
+
+@theme inline {
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-key: var(--key-face);
+  --color-hairline: var(--hairline);
+  --color-ink-1: var(--ink-1);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-brass: var(--brass);
+  --color-thinking: var(--st-thinking);
+  --color-working: var(--st-working);
+  --color-waiting: var(--st-waiting);
+  --color-done: var(--st-done);
+  --color-error: var(--st-error);
+  --color-idle: var(--st-idle);
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --radius-key: 10px;
+  --radius-panel: 18px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--surface-0);
+  color: var(--ink-1);
+  font-family: var(--font-body);
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 2% monochrome noise on the slab (SPEC §7.2) — inline SVG, zero requests. */
+.slab-noise::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: var(--noise-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Every control is a backlit frosted keycap on a machined slab. Layered as
+   components so Tailwind utilities (e.g. rounded-full on the dial) still win. */
+@layer components {
+  .keycap {
+    background: var(--key-face);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-key);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      0 1px 2px rgb(0 0 0 / 0.35);
+  }
+
+  .panel {
+    background: var(--surface-1);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-panel);
+  }
+
+  .hairline-b {
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+
+  .font-data {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Focus visibility: brass ring, never a status color (SPEC §7.1). */
+:where(button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+}
+
+/* Status pulses. `waiting` must read from three meters (SPEC §7.3). */
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes waiting-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.pulse-thinking {
+  animation: breathe 2.4s ease-in-out infinite;
+}
+
+.pulse-waiting {
+  animation: waiting-pulse 1.2s ease-in-out infinite;
+}
+
+/* Ticker marquee. */
+@keyframes ticker-slide {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.ticker-slide {
+  animation: ticker-slide 18s linear infinite;
+}
+
+/* Deskglow ambient edges: pure opacity/filter, ≤8% strength. */
+.deskglow-edges {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 240ms ease;
+  background:
+    radial-gradient(120% 40% at 50% -10%, var(--glow-color) 0%, transparent 60%),
+    radial-gradient(120% 40% at 50% 110%, var(--glow-color) 0%, transparent 60%);
+  opacity: 0.08;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-thinking,
+  .pulse-waiting,
+  .ticker-slide {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce), (prefers-reduced-transparency: reduce) {
+  .deskglow-edges,
+  .tile-glow {
+    display: none;
+  }
+}
+
+/* Per-tile Deskglow bleed under the keycap. */
+.tile-glow {
+  position: absolute;
+  inset: -14px;
+  border-radius: calc(var(--radius-key) + 14px);
+  background: radial-gradient(60% 60% at 50% 60%, var(--glow-color) 0%, transparent 70%);
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+/* Diff rendering in permission cards. */
+.diff-line-add {
+  color: var(--st-done);
+  background: color-mix(in srgb, var(--st-done) 8%, transparent);
+}
+
+.diff-line-del {
+  color: var(--st-error);
+  background: color-mix(in srgb, var(--st-error) 8%, transparent);
+}

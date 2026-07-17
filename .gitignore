@@ -8,3 +8,4 @@ test-results/
 .DS_Store
 .env
 .env.*
+packages/deck/public/icon-*.png

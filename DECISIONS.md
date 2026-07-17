@@ -56,6 +56,94 @@ Small, dated records of choices the spec left open. One line of rationale each.
 - Contract suite: process boundaries are injectable (`QueryFn` for the SDK, `CodexRunner` for execa, gateway takes raw hook payloads), so fixtures replay against real Hub instances and assert broadcast-level behavior.
 - Hub `dispatch` converts controller validation throws (unknown dial detents, bad presets) into `bad_message` protocol errors instead of `internal`.
 
+## Deck design plan (Phase 6, written before any deck code)
+
+### Tokens (SPEC §7.1, Graphite defaults — implemented as CSS variables, Tailwind reads them)
+
+| Variable        | Value                                                     | Use                                                  |
+| --------------- | --------------------------------------------------------- | ---------------------------------------------------- |
+| `--surface-0`   | `#0E0F12`                                                 | deck slab background                                 |
+| `--surface-1`   | `#16181D`                                                 | panels, focus view                                   |
+| `--key-face`    | `#1E2127` (+ inset top highlight `rgba(255,255,255,.05)`) | keycap body                                          |
+| `--hairline`    | `#2A2E36`                                                 | 1px machined seams                                   |
+| `--ink-1/2/3`   | `#E9EBEE / #9BA1AC / #5C626D`                             | text hierarchy                                       |
+| `--brass`       | `#D8B36A`                                                 | dial needle, focus rings, brand marks — never status |
+| `--st-thinking` | `#A78BFA` breathing 2.4 s                                 | violet                                               |
+| `--st-working`  | `#4CC2FF` steady                                          | cyan                                                 |
+| `--st-waiting`  | `#FFB454` pulse 1.2 s                                     | amber — readable from 3 m                            |
+| `--st-done`     | `#3ECF8E`                                                 | green                                                |
+| `--st-error`    | `#FF5D5D`                                                 | red                                                  |
+| `--st-idle`     | `#3A3F48`                                                 | dim (also disconnected)                              |
+
+Type: Space Grotesk 600 (display/labels), Inter (body), IBM Plex Mono tabular (timers/tokens/latency). All via `@fontsource`, zero CDN. Texture: 1px top-edge specular on keys, 2% monochrome SVG noise on `--surface-0`, radii 10px keys / 18px panels, gradients only for status glows.
+
+### Deskglow (the signature)
+
+Two layers. (1) Per-tile: a radial gradient in the tile's status color bleeding _beneath_ the keycap onto the slab, ≤8% opacity. (2) Ambient edges: fixed viewport-edge gradients tinted toward the aggregate fleet state (priority: error > waiting > working > thinking > idle), so from across the room the whole screen is one status light. Both layers use only `opacity`/`transform`/`filter`, and both are removed entirely under `prefers-reduced-motion` or `prefers-reduced-transparency`.
+
+Not-a-template check: no cards-on-white, no sidebar-nav, no component library. Every control is a frosted keycap on one continuous slab; brass appears only on the dial needle, focus rings, and the wordmark; data is mono, labels are Grotesk. The amber waiting pulse is the loudest thing on screen by design.
+
+### Wireframes
+
+Grid (home — phone portrait):
+
+```
+┌────────────────────────────────┐
+│ ▲ agentdeck   3 running · 1 ⏳ │  ← StatBar: fleet counts, tokens/cost today,
+│ 41.2k tok · $0.31 · 12 ms ●    │     live hub latency, connection dot
+├────────────────────────────────┤
+│ ╭──────────╮  ╭──────────╮     │
+│ │◤amber    │  │◤cyan     │     │  ← AgentTile: status glow bleeding under
+│ │fix flaky │  │app router│     │     the keycap, title, harness mark,
+│ │auth test │  │migration │     │     branch, elapsed mono timer,
+│ │⌥ claude  │  │⌥ codex   │     │     current-tool line, cost meter
+│ │fix/auth… │  │feat/app… │     │
+│ │Edit src/…│  │Bash pnpm…│     │
+│ │12:41 $.06│  │31:07 84k │     │
+│ ╰──────────╯  ╰──────────╯     │
+│  … more tiles …                │
+├────────────────────────────────┤
+│ ‹ticker: sim-auth waiting …›   │  ← one-line scrolling fleet feed
+├────────────────────────────────┤
+│ [✓ Approve] [◼ Stop] [⟳ Tests] │  ← ActionKeys (bindable)
+│ [ JogPad ]  ( DIAL )  [🎤]     │  ← flick pad · brass-needle dial · voice
+└────────────────────────────────┘
+```
+
+Focus (one session):
+
+```
+┌────────────────────────────────┐
+│ ‹ back   fix flaky auth test   │
+│ ● waiting_permission · claude  │
+│ acme/api · fix/auth-retry      │
+├────────────────────────────────┤
+│ transcript tail (mono-dated)   │
+│ ▸ tool line: Bash pnpm test ✓  │
+│ ╭─ Edit src/auth/session.ts ─╮ │
+│ │ --- a/src/auth/session.ts  │ │  ← PermissionCard: pretty input +
+│ │ -  const retries = 1;      │ │     unified diff, red/green mono
+│ │ +  for (let attempt = …    │ │
+│ │ [Deny] [Approve] [Always]  │ │  ← buttons say what they do
+│ ╰────────────────────────────╯ │
+├────────────────────────────────┤
+│ (DIAL: model/thinking) [◼][⏎] │
+│ [ prompt bar…            ][🎤] │
+└────────────────────────────────┘
+```
+
+Pair: single centered keycap panel — wordmark, one-line explanation, camera-less pairing state driven by the URL token (`#pair=…`), progress line, error state with next step. Settings: keycap list groups (Theme, Sound clicky/silent/off, Haptics, Left-hand mode, Voice + enable-voice HTTPS walkthrough, Devices, Layout export/import). Theme editor: token swatch rows with native color inputs, live preview tile, export/import JSON, reset per preset. Edit mode (long-press grid): preset picker (Phone Portrait / Phone Landscape / Tablet / Desktop Strip), widget visibility toggles, tile size S/M/L, action-key binding editor.
+
+### Deck engineering decisions
+
+- zustand store is the single client state: sessions map, ticker ring (50), focused transcript, pending permissions, connection state (`connected/reconnecting/offline` — always visible as the StatBar dot + a reconnect banner), settings, layout; server messages fold in through one `applyServerMsg` reducer shared by live socket and replay.
+- Reconnect: exponential backoff 0.5 s → 8 s with full jitter, forever; `lastSeq` rides the WS query string so resume is atomic; heartbeat ping every 5 s, dead after 12 s of silence (SPEC §3.2). Latency for the StatBar = pong round-trip EMA.
+- Dial/jog inputs coalesce client-side to one message per animation frame carrying the latest value (SPEC §3.4); optimistic UI reconciles from `ack.data`.
+- Wake lock: `navigator.wakeLock` with a looping 2×2 muted webm fallback on HTTP (SPEC §6); voice key uses Web Speech only in secure contexts, otherwise shows the explanatory tooltip pointing at Settings → Enable voice.
+- Sounds are WebAudio-synthesized (no audio assets): `clicky` = 1.8 kHz square blip + noise tap through a lowpass, `silent` = haptics only.
+- PWA: vite-plugin-pwa `generateSW`, offline app shell, PNG icons generated at build by a dependency-free script (hand-rolled PNG encoder) so the repo carries no binary blobs.
+- Themes ship as token JSON (Graphite, Workshop `#EDE6D6` cream slab with charcoal keys, Void true `#000`); `applyTheme` writes CSS variables; the editor edits the same JSON live and exports/imports it.
+
 ## Phase log
 
 - [x] Phase 0 — Recon

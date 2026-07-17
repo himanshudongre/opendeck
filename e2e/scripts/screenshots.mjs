@@ -102,35 +102,18 @@ async function screenshots() {
     out('wrote docs/deck-focus-permission.png');
     await phone.close();
 
-    // Micro mode: the whole deck as one rendered device.
+    // Micro mode: the default experience — the WebGL device, no seeding.
     const micro = await browser.newContext({
       viewport: { width: 390, height: 844 },
       deviceScaleFactor: 2,
       isMobile: true,
       hasTouch: true,
     });
-    await micro.addInitScript(() => {
-      localStorage.setItem(
-        'opendeck.layout',
-        JSON.stringify({
-          preset: 'micro',
-          tileSize: 'M',
-          widgets: {
-            statBar: true,
-            ticker: true,
-            actionKeys: true,
-            dial: true,
-            jogPad: true,
-            voiceKey: true,
-          },
-          actionKeys: [],
-        }),
-      );
-    });
     const microPage = await micro.newPage();
     await microPage.goto(URL);
     await microPage.getByRole('slider').waitFor();
-    await microPage.waitForTimeout(2500);
+    // Give the lazy three.js chunk, PMREM env, and first frames time to land.
+    await microPage.waitForTimeout(4000);
     await microPage.screenshot({ path: join(docsDir, 'deck-micro.png') });
     out('wrote docs/deck-micro.png');
     await micro.close();
@@ -205,9 +188,14 @@ async function demoGif() {
     // Micro mode is the default: watch the LEDs come alive, approve the
     // hero permission with the physical check key, watch the agent go green.
     await page.getByRole('slider').waitFor({ timeout: 40_000 });
-    await page.getByText(/approve Edit\?/).waitFor({ timeout: 40_000 });
-    await page.waitForTimeout(1800);
-    await page.getByRole('button', { name: 'Approve Edit' }).click();
+    await page
+      .getByText(/needs approval/)
+      .first()
+      .waitFor({ timeout: 40_000 });
+    await page.waitForTimeout(2600);
+    // The 3D face mirrors controls in a visually-hidden layer; dispatch the
+    // click straight to it (sr-only elements fail pointer hit-testing).
+    await page.getByRole('button', { name: 'Approve Edit' }).dispatchEvent('click');
     await page.waitForTimeout(4500);
 
     await context.close();

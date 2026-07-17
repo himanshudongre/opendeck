@@ -7,7 +7,7 @@ import { hapticTick } from '../lib/haptics.js';
 import { playDetent } from '../lib/sound.js';
 import { useDeck } from '../state/store.js';
 
-interface DialAxis {
+export interface DialAxis {
   axis: SetEffortPayload['axis'];
   label: string;
   values: string[];

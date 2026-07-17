@@ -30,9 +30,9 @@ VITE_HUB_URL=http://127.0.0.1:3325 pnpm --filter @opendeck/deck dev
 | `pnpm typecheck` | `tsc --noEmit` in every package                                                                                                                    |
 | `pnpm test`      | Vitest: protocol codecs, hub core, adapters (fixture replay), simulator, deck store/widgets — with coverage gates (hub+protocol ≥ 85%, deck ≥ 70%) |
 | `pnpm e2e`       | Playwright, iPhone 14 / iPad / desktop viewports against two live hubs (build first)                                                               |
-| `pnpm perf`      | loopback latency harness (p95 input→ack < 30 ms) + 300 KB gz bundle gate                                                                           |
+| `pnpm perf`      | loopback latency harness (p95 input→ack < 30 ms) + bundle gates (boot ≤ 300 KB gz, lazy 3D chunk ≤ 280 KB gz)                                      |
 
-CI runs all of it on ubuntu + macos, Node 20 + 22. A red gate blocks merge;
+CI runs all of it on ubuntu + macos, Node 22 + 24. A red gate blocks merge;
 please don't `.skip` your way around one.
 
 House rules that lint enforces so reviews don't have to: TypeScript strict
@@ -57,6 +57,16 @@ The deck is deliberately data-driven so most extensions are small PRs:
   visibility flag to `WidgetVisibility`, render it from `GridScreen`, and
   give it a toggle in `EditOverlay`. Widgets read the zustand store and call
   `controller` — never the socket directly.
+- **A new switch sound**: add a `Voice` to the `DOWN` table in
+  `packages/deck/src/lib/sound.ts` (three layers: click leaf, plate strike,
+  case resonance) and a chip in Settings. Users who just want their favorite
+  switch can import a recording via the `custom` preset — no code at all.
+- **The device faces**: both renderers share one brain,
+  `packages/deck/src/state/micro-model.ts` — behavior changes go there so
+  the WebGL face (`Micro3D.tsx`, three.js + react-three-fiber, lazy chunk)
+  and the CSS face (`MicroDeck.tsx`) can never disagree. Visual polish goes
+  in the face you're improving. The 3D face mirrors every control in a
+  visually-hidden DOM layer; keep it in sync or the E2E suite will tell you.
 - **A new screen-side capability** (protocol change): extend the zod schemas
   in `packages/protocol` first; both hub and deck validate at that boundary,
   and the codec round-trip tests will hold you honest.

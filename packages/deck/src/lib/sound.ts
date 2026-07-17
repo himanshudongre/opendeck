@@ -8,9 +8,11 @@
  *
  * Presets mirror the switch families the hardware sells: `clicky` (crisp
  * click jacket), `thocky` (deep lubed-linear bottom-out), `silent`
- * (dampened stems, barely-there), `off`.
+ * (dampened stems, barely-there), `off` — plus `custom`, which plays the
+ * user's own imported switch recording (see switch-sounds.ts), something no
+ * physical pad can offer.
  */
-export type SoundPreset = 'clicky' | 'thocky' | 'silent' | 'off';
+export type SoundPreset = 'clicky' | 'thocky' | 'silent' | 'custom' | 'off';
 
 let context: AudioContext | undefined;
 let master: DynamicsCompressorNode | undefined;
@@ -92,13 +94,59 @@ function resonance(
   osc.stop(at + decay + 0.01);
 }
 
+/** The user's imported switch recording, decoded and ready to fire. */
+export interface CustomKit {
+  down?: AudioBuffer;
+  up?: AudioBuffer;
+  name?: string;
+}
+
+let custom: CustomKit = {};
+
+export function setCustomKit(kit: CustomKit): void {
+  custom = kit;
+}
+
+export function customKitName(): string | undefined {
+  return custom.name;
+}
+
+/**
+ * Decodes an imported audio file off the live output path. The offline
+ * context sidesteps autoplay policies — no user gesture needed to decode.
+ */
+export async function decodeSample(data: ArrayBuffer): Promise<AudioBuffer | undefined> {
+  if (typeof OfflineAudioContext === 'undefined') return undefined;
+  const offline = new OfflineAudioContext(1, 1, 44100);
+  try {
+    return await offline.decodeAudioData(data.slice(0));
+  } catch {
+    return undefined;
+  }
+}
+
+/** Plays a decoded sample with a whisper of detune so rolls stay organic. */
+function playSample(buffer: AudioBuffer, scale: number, rate: number): void {
+  const g = graph();
+  if (!g) return;
+  const at = g.ctx.currentTime;
+  const source = g.ctx.createBufferSource();
+  source.buffer = buffer;
+  source.playbackRate.value = rate * drift(0.03);
+  const gain = g.ctx.createGain();
+  gain.gain.setValueAtTime(scale * drift(0.12), at);
+  source.connect(gain);
+  gain.connect(g.out);
+  source.start(at);
+}
+
 interface Voice {
   click?: Burst;
   plate: Burst;
   body: { freq: number; gain: number; decay: number };
 }
 
-const DOWN: Record<Exclude<SoundPreset, 'off'>, Voice> = {
+const DOWN: Record<Exclude<SoundPreset, 'off' | 'custom'>, Voice> = {
   clicky: {
     click: { freq: 3900, q: 9, gain: 0.16, decay: 0.012 },
     plate: { freq: 1500, q: 2.2, gain: 0.13, decay: 0.03 },
@@ -116,6 +164,21 @@ const DOWN: Record<Exclude<SoundPreset, 'off'>, Voice> = {
 
 function play(preset: SoundPreset, scale: number, brighten: number): void {
   if (preset === 'off') return;
+  if (preset === 'custom') {
+    // Release prefers a dedicated up-sample; otherwise replay the press
+    // smaller and a touch faster, like lifting off the same switch.
+    if (scale < 1 && custom.up) {
+      playSample(custom.up, scale + 0.1, 1);
+      return;
+    }
+    if (custom.down) {
+      playSample(custom.down, scale, scale < 1 ? 1.18 : 1);
+      return;
+    }
+    // Nothing imported yet: fall back to the stock clicky synth.
+    play('clicky', scale, brighten);
+    return;
+  }
   const g = graph();
   if (!g) return;
   const voice = DOWN[preset];

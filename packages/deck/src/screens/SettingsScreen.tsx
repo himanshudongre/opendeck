@@ -1,7 +1,13 @@
 import { ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { controller } from '../lib/controller.js';
 import { playKeyDown, type SoundPreset } from '../lib/sound.js';
+import {
+  clearSwitchSounds,
+  importSwitchSound,
+  primeSwitchSounds,
+  type SampleSlot,
+} from '../lib/switch-sounds.js';
 import { PRESET_THEMES } from '../state/themes.js';
 import type { LayoutConfig } from '../state/layouts.js';
 import { useDeck } from '../state/store.js';
@@ -38,6 +44,30 @@ export function SettingsScreen() {
   const hubVersion = useDeck((state) => state.hubVersion);
   const [layoutDraft, setLayoutDraft] = useState('');
   const [layoutNote, setLayoutNote] = useState<string | undefined>(undefined);
+  const [kitName, setKitName] = useState<string | undefined>(undefined);
+  const [soundNote, setSoundNote] = useState<string | undefined>(undefined);
+  const downInput = useRef<HTMLInputElement>(null);
+  const upInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    void primeSwitchSounds().then(setKitName);
+  }, []);
+
+  const importSample = (slot: SampleSlot) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    void importSwitchSound(slot, file).then((name) => {
+      if (name === undefined) {
+        setSoundNote('That file didn’t decode as audio (or is over 2 MB). Nothing changed.');
+        return;
+      }
+      if (slot === 'down') setKitName(name);
+      setSoundNote(slot === 'down' ? 'Press sound imported.' : 'Release sound imported.');
+      updateSettings({ sound: 'custom' });
+      playKeyDown('custom');
+    });
+  };
 
   const httpsUrl = ((): string => {
     const url = new URL(window.location.origin);
@@ -86,6 +116,16 @@ export function SettingsScreen() {
             onClick={() => setScreen('themes')}
           />
         </Row>
+        <Row label="Device rendering">
+          {(['3d', 'classic'] as const).map((mode) => (
+            <Chip
+              key={mode}
+              label={mode}
+              active={settings.rendering === mode}
+              onClick={() => updateSettings({ rendering: mode })}
+            />
+          ))}
+        </Row>
         <Row label="Left-hand mode">
           <Chip
             label={settings.leftHand ? 'on' : 'off'}
@@ -98,7 +138,7 @@ export function SettingsScreen() {
           Feel
         </h3>
         <Row label="Key sound">
-          {(['clicky', 'thocky', 'silent', 'off'] as SoundPreset[]).map((preset) => (
+          {(['clicky', 'thocky', 'silent', 'custom', 'off'] as SoundPreset[]).map((preset) => (
             <Chip
               key={preset}
               label={preset}
@@ -110,6 +150,64 @@ export function SettingsScreen() {
             />
           ))}
         </Row>
+        {settings.sound === 'custom' && (
+          <div className="px-4 py-2">
+            <p className="text-[11px] leading-relaxed text-ink-3">
+              Bring your own switch. Import a short press recording (WAV, MP3, or OGG under 2 MB)
+              and, if you like, a separate release sound for the up-stroke. Until a press sound is
+              imported, clicky plays.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                className="keycap px-3 py-1.5 text-[11px] text-ink-1"
+                onClick={() => downInput.current?.click()}
+              >
+                Import press sound
+              </button>
+              <button
+                type="button"
+                className="keycap px-3 py-1.5 text-[11px] text-ink-1"
+                onClick={() => upInput.current?.click()}
+              >
+                Import release sound
+              </button>
+              <button
+                type="button"
+                className="keycap px-3 py-1.5 text-[11px] text-ink-1"
+                disabled={kitName === undefined}
+                onClick={() => {
+                  void clearSwitchSounds().then(() => {
+                    setKitName(undefined);
+                    setSoundNote('Custom sounds removed.');
+                  });
+                }}
+              >
+                Remove
+              </button>
+            </div>
+            <input
+              ref={downInput}
+              type="file"
+              accept="audio/*"
+              className="hidden"
+              aria-label="Choose a press sound file"
+              onChange={importSample('down')}
+            />
+            <input
+              ref={upInput}
+              type="file"
+              accept="audio/*"
+              className="hidden"
+              aria-label="Choose a release sound file"
+              onChange={importSample('up')}
+            />
+            <p className="font-data mt-2 text-[10px] text-ink-3">
+              {kitName === undefined ? 'no sample loaded' : `loaded: ${kitName}`}
+            </p>
+            {soundNote !== undefined && <p className="mt-1 text-[11px] text-ink-2">{soundNote}</p>}
+          </div>
+        )}
         <Row label="Haptics">
           <Chip
             label={settings.haptics ? 'on' : 'off'}

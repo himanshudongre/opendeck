@@ -14,6 +14,8 @@
 
 ## 30-second quickstart
 
+All you need is Node 20+ on the machine your agents run on:
+
 ```sh
 npx opendeck
 ```
@@ -43,8 +45,8 @@ one-press tactile control. It's $230, it's six keys, and it only speaks Codex.
 | Approvals   | The actual command or unified diff, one tap                                                                                                 | A blinking key         |
 | Harnesses   | Claude Code + Codex now; one adapter interface for more                                                                                     | Codex                  |
 | Controls    | Bindable action keys, dial with detents, jog pad, voice key                                                                                 | 13 keys, dial, stick   |
-| Device mode | **Micro layout**: the whole deck as one rendered device — LED agent keys, reasoning knob (minimal→xhigh), joystick workflows, e-ink readout | The real thing (fair!) |
-| Feel        | Press physics, haptics, synthesized key ticks (clicky/silent)                                                                               | Real keycaps (fair!)   |
+| Device mode | **The default**: a real-time WebGL device — clearcoat keycaps over glowing LEDs, knurled reasoning knob (minimal→xhigh), sprung joystick, e-ink readout, bloom and studio lighting | The real thing (fair!) |
+| Feel        | Sprung key travel with overshoot, haptics, layered switch acoustics (clicky/thocky/silent) — or import a recording of your own favorite switch                                    | Real keycaps (fair!)   |
 | Where       | Any browser on your LAN, installable PWA, always-awake                                                                                      | Your desk              |
 | Cloud       | None. LAN only, no telemetry, no accounts                                                                                                   | —                      |
 
@@ -142,10 +144,12 @@ one-time cert trust.
 
 ## Make it yours
 
-The deck opens in **Micro mode**: the whole surface rendered as one device —
-LED agent keys, a knurled reasoning knob, a workflow joystick, command keys
-and a push-to-talk bar. Long-press the faceplate to switch layouts (grid,
-tablet, desktop strip) or rebind anything:
+The deck opens in **Micro mode**: the whole surface as one device, rendered
+in real time with three.js — physically-based keycaps over glowing LEDs, a
+knurled reasoning knob, a spring-loaded joystick, command caps, a
+push-to-talk bar, and bloom where the light actually is. Long-press the
+faceplate to switch layouts (grid, tablet, desktop strip) or rebind
+anything:
 
 - **Command keys** are data: each cap is `{ icon, label, kind, args }` in
   layout JSON, with icons from a curated set (`packages/deck/src/state/icons.ts`).
@@ -153,6 +157,14 @@ tablet, desktop strip) or rebind anything:
   "review the diff" for whatever your team actually repeats.
 - **Themes** are token JSON with a live editor; **layouts** copy/paste as
   JSON from Settings, so a good configuration is a gist away.
+- **Switch sounds** are synthesized in WebAudio (clicky, thocky, silent —
+  every strike slightly detuned so rolls never sound looped), and
+  `custom` lets you import a recording of your own favorite switch: press
+  sound plus an optional release sound, stored locally in the browser.
+  Something no injection-molded pad will ever do.
+- **Rendering** is your call: the WebGL device face, or a lightweight CSS
+  face (Settings → Device rendering). The deck falls back to CSS on its own
+  when WebGL2 is missing or the OS asks for reduced motion.
 
 ## Contributing
 

@@ -8,7 +8,7 @@ import { StatBar } from '../widgets/StatBar.js';
 import { Ticker } from '../widgets/Ticker.js';
 import { VoiceKey } from '../widgets/VoiceKey.js';
 import { EditOverlay } from './EditOverlay.js';
-import { MicroDeck } from './MicroDeck.js';
+import { MicroScreen } from './MicroScreen.js';
 
 export function GridScreen() {
   const sessions = useDeck((state) => state.sessions);
@@ -25,7 +25,7 @@ export function GridScreen() {
   if (layout.preset === 'micro') {
     return (
       <div className="relative h-full">
-        <MicroDeck />
+        <MicroScreen />
         {editMode && <EditOverlay />}
       </div>
     );

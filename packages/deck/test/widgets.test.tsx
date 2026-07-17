@@ -284,6 +284,23 @@ describe('screens', () => {
     fireEvent.click(toggle);
     expect(useDeck.getState().settings.haptics).toBe(false);
   });
+
+  it('SettingsScreen reveals the bring-your-own-switch section', () => {
+    render(<SettingsScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'custom' }));
+    expect(useDeck.getState().settings.sound).toBe('custom');
+    expect(screen.getByRole('button', { name: 'Import press sound' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Import release sound' })).toBeDefined();
+    expect(screen.getByText('no sample loaded')).toBeDefined();
+  });
+
+  it('SettingsScreen switches device rendering', () => {
+    render(<SettingsScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'classic' }));
+    expect(useDeck.getState().settings.rendering).toBe('classic');
+    fireEvent.click(screen.getByRole('button', { name: '3d' }));
+    expect(useDeck.getState().settings.rendering).toBe('3d');
+  });
 });
 
 describe('DeskglowEdges', () => {

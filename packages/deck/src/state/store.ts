@@ -30,6 +30,8 @@ export interface DeckSettings {
   haptics: boolean;
   leftHand: boolean;
   voiceLang: string;
+  /** WebGL device face vs the lightweight CSS one. 3D falls back on its own. */
+  rendering: '3d' | 'classic';
 }
 
 const TICKER_CAP = 50;
@@ -101,6 +103,7 @@ const DEFAULT_SETTINGS: DeckSettings = {
   haptics: true,
   leftHand: false,
   voiceLang: 'en-US',
+  rendering: '3d',
 };
 
 export function activeTheme(settings: DeckSettings): ThemeTokens {

@@ -1,20 +1,22 @@
-import type { Session, SetEffortPayload } from '@opendeck/protocol';
+import type { Session } from '@opendeck/protocol';
 import { MessageCirclePlus, Mic } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { StatusDot, statusColorVar } from '../components/StatusDot.js';
 import { controller } from '../lib/controller.js';
-import { createCoalescer } from '../lib/coalescer.js';
-import { formatCost, formatTokens, statusLabel } from '../lib/format.js';
+import { statusLabel } from '../lib/format.js';
 import { hapticTick } from '../lib/haptics.js';
 import { playDetent, playKeyDown, playKeyUp } from '../lib/sound.js';
 import { startVoice, voiceAvailability, type VoiceSession } from '../lib/voice.js';
+import {
+  START_DEG,
+  SWEEP_DEG,
+  useJogFire,
+  useKnobModel,
+  useMicroModel,
+} from '../state/micro-model.js';
 import { useDeck } from '../state/store.js';
-import { axesFor } from '../widgets/Dial.js';
 import { keyIcon } from '../state/icons.js';
-import { DEFAULT_JOG_BINDINGS, type ActionKeyBinding } from '../state/layouts.js';
-
-const KEYS_PER_PAGE = 6;
 
 const ACCENT_TOKEN = {
   working: 'working',
@@ -22,8 +24,6 @@ const ACCENT_TOKEN = {
   done: 'done',
   error: 'error',
 } as const;
-const SWEEP_DEG = 270;
-const START_DEG = -135;
 
 /** Bottom-out on press, a smaller brighter strike on release — like a switch. */
 function usePress(): { down: () => void; up: () => void } {
@@ -152,44 +152,14 @@ function CommandKey({
 function MicroKnob({ target }: { target: Session | undefined }) {
   const settings = useDeck((state) => state.settings);
   const reduced = useReducedMotion() ?? false;
-  const axes = useMemo(() => (target ? axesFor(target) : []), [target]);
-  const [axisIndex, setAxisIndex] = useState(0);
-  const axis = axes[Math.min(axisIndex, Math.max(0, axes.length - 1))];
-  const [valueIndex, setValueIndex] = useState(0);
+  const { axis, axes, cycleAxis, valueIndex, steps, knobDeg, setIndex } = useKnobModel(target);
   const knobRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
-  useEffect(() => {
-    setAxisIndex(0);
-  }, [target?.id]);
-  useEffect(() => {
-    if (axis) setValueIndex(Math.max(0, axis.values.indexOf(axis.initial)));
-  }, [axis?.axis, target?.id]);
-
-  const coalescer = useMemo(
-    () =>
-      createCoalescer<SetEffortPayload>((payload) => {
-        controller.setEffort(payload);
-      }),
-    [],
-  );
-
   const canDial = target !== undefined && axis !== undefined;
-  const steps = axis?.values.length ?? 1;
-  const knobDeg =
-    START_DEG + (steps === 1 ? SWEEP_DEG / 2 : (valueIndex / (steps - 1)) * SWEEP_DEG);
-
-  const setIndex = (next: number, flush: boolean): void => {
-    if (!target || !axis) return;
-    const clamped = Math.max(0, Math.min(steps - 1, next));
-    if (clamped !== valueIndex) {
-      setValueIndex(clamped);
-      hapticTick(settings.haptics);
-      playDetent(settings.sound);
-      const value = axis.values[clamped];
-      if (value !== undefined) coalescer.push({ sessionId: target.id, axis: axis.axis, value });
-    }
-    if (flush) coalescer.flush();
+  const detent = (): void => {
+    hapticTick(settings.haptics);
+    playDetent(settings.sound);
   };
 
   const indexFromPointer = (event: { clientX: number; clientY: number }): number => {
@@ -225,19 +195,20 @@ function MicroKnob({ target }: { target: Session | undefined }) {
         onPointerDown={(event) => {
           dragging.current = true;
           event.currentTarget.setPointerCapture(event.pointerId);
-          setIndex(indexFromPointer(event), false);
+          setIndex(indexFromPointer(event), false, detent);
         }}
         onPointerMove={(event) => {
-          if (dragging.current) setIndex(indexFromPointer(event), false);
+          if (dragging.current) setIndex(indexFromPointer(event), false, detent);
         }}
         onPointerUp={() => {
           dragging.current = false;
-          coalescer.flush();
+          setIndex(valueIndex, true);
         }}
         onKeyDown={(event) => {
-          if (event.key === 'ArrowRight' || event.key === 'ArrowUp') setIndex(valueIndex + 1, true);
+          if (event.key === 'ArrowRight' || event.key === 'ArrowUp')
+            setIndex(valueIndex + 1, true, detent);
           if (event.key === 'ArrowLeft' || event.key === 'ArrowDown')
-            setIndex(valueIndex - 1, true);
+            setIndex(valueIndex - 1, true, detent);
         }}
       >
         <motion.span
@@ -280,7 +251,7 @@ function MicroKnob({ target }: { target: Session | undefined }) {
             : `Dial binds ${axis?.label ?? 'nothing'}`
         }
         disabled={axes.length <= 1}
-        onClick={() => setAxisIndex((axisIndex + 1) % Math.max(1, axes.length))}
+        onClick={cycleAxis}
       >
         {axis ? `${axis.label} · ${axis.values[valueIndex] ?? ''}` : 'dial'}
       </button>
@@ -291,23 +262,19 @@ function MicroKnob({ target }: { target: Session | undefined }) {
 /** The joystick: a glossy stick that tilts under the finger and flicks workflows. */
 function MicroStick({ targetId }: { targetId: string | undefined }) {
   const settings = useDeck((state) => state.settings);
-  const jog = useDeck((state) => state.layout.jog) ?? DEFAULT_JOG_BINDINGS;
+  const { fire } = useJogFire(targetId);
   const reduced = useReducedMotion() ?? false;
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const origin = useRef<{ x: number; y: number } | undefined>(undefined);
 
-  const fire = (dx: number, dy: number): void => {
+  const flick = (dx: number, dy: number): void => {
     if (targetId === undefined) return;
     if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
     const direction =
       Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
     hapticTick(settings.haptics, 12);
     playDetent(settings.sound);
-    controller.action({
-      sessionId: targetId,
-      kind: 'prompt_template',
-      args: { text: jog[direction].template },
-    });
+    fire(direction);
   };
 
   return (
@@ -328,7 +295,7 @@ function MicroStick({ targetId }: { targetId: string | undefined }) {
       }}
       onPointerUp={(event) => {
         if (origin.current) {
-          fire(event.clientX - origin.current.x, event.clientY - origin.current.y);
+          flick(event.clientX - origin.current.x, event.clientY - origin.current.y);
         }
         origin.current = undefined;
         setTilt({ x: 0, y: 0 });
@@ -431,74 +398,25 @@ function MicBar({ targetId }: { targetId: string | undefined }) {
  * unlimited agents via pages, full diffs one long-press away).
  */
 export function MicroDeck() {
-  const sessions = useDeck((state) => state.sessions);
-  const order = useDeck((state) => state.order);
-  const permissions = useDeck((state) => state.permissions);
-  const connection = useDeck((state) => state.connection);
-  const focusSession = useDeck((state) => state.focusSession);
   const setEditMode = useDeck((state) => state.setEditMode);
-  const [page, setPage] = useState(0);
-  const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const plateHold = useRef<number | undefined>(undefined);
-
-  const list = order.flatMap((id) => (sessions[id] ? [sessions[id]] : []));
-  const pageCount = Math.max(1, Math.ceil(list.length / KEYS_PER_PAGE));
-  const currentPage = Math.min(page, pageCount - 1);
-  const visible = list.slice(
-    currentPage * KEYS_PER_PAGE,
-    currentPage * KEYS_PER_PAGE + KEYS_PER_PAGE,
-  );
-
-  const attention =
-    (selectedId !== undefined ? sessions[selectedId] : undefined) ??
-    list.find((s) => s.status === 'waiting_permission') ??
-    list.find((s) => s.status === 'waiting_input') ??
-    list[0];
-
-  const pending = attention
-    ? Object.values(permissions).find((request) => request.sessionId === attention.id)
-    : undefined;
-
-  const openFocus = (id: string): void => {
-    focusSession(id);
-    controller.subscribe(id);
-  };
-
-  // Three rebindable command caps; the fourth cap is always "open".
-  const layout = useDeck.getState().layout;
-  const commandKeys = layout.actionKeys.slice(0, 3);
-
-  const bindingArmed = (binding: ActionKeyBinding): boolean => {
-    if (binding.kind === 'approve' || binding.kind === 'deny') return pending !== undefined;
-    if (binding.kind === 'shell' || binding.kind === 'new_session') return true;
-    if (binding.kind === 'interrupt') return attention?.capabilities.includes('interrupt') === true;
-    return attention !== undefined;
-  };
-
-  const fireBinding = (binding: ActionKeyBinding): void => {
-    if ((binding.kind === 'approve' || binding.kind === 'deny') && pending) {
-      controller.respondPermission(pending.id, binding.kind);
-      return;
-    }
-    controller.action({
-      kind: binding.kind,
-      ...(attention === undefined ? {} : { sessionId: attention.id }),
-      ...(binding.args === undefined ? {} : { args: binding.args }),
-    });
-  };
-
-  const lcdLine = attention
-    ? pending
-      ? `${attention.title} · approve ${pending.tool.name}?`
-      : `${attention.title} · ${statusLabel(attention.status)}`
-    : 'no agents · run opendeck --demo';
-  const lcdStats = attention
-    ? `${formatTokens(attention.stats.inputTokens + attention.stats.outputTokens)} tok${
-        attention.stats.costUsd !== undefined ? ` · ${formatCost(attention.stats.costUsd)}` : ''
-      } · ${attention.harness}`
-    : '';
-
-  const keySlots = Array.from({ length: KEYS_PER_PAGE }, (_, index) => visible[index]);
+  const {
+    attention,
+    pending,
+    keySlots,
+    page: currentPage,
+    pageCount,
+    setPage,
+    setSelectedId,
+    commandKeys,
+    bindingArmed,
+    bindingLabel,
+    fireBinding,
+    openFocus,
+    lcdLine,
+    lcdStats,
+    connection,
+  } = useMicroModel();
 
   return (
     <div className="flex h-full items-center justify-center overflow-y-auto p-4">
@@ -639,11 +557,7 @@ export function MicroDeck() {
               return (
                 <CommandKey
                   key={binding.id}
-                  label={
-                    (binding.kind === 'approve' || binding.kind === 'deny') && pending
-                      ? `${binding.label} ${pending.tool.name}`
-                      : binding.label
-                  }
+                  label={bindingLabel(binding)}
                   disabled={!armed}
                   onPress={() => fireBinding(binding)}
                 >

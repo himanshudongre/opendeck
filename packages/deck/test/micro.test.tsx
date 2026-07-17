@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { controller } from '../src/lib/controller.js';
 import { GridScreen } from '../src/screens/GridScreen.js';
 import { MicroDeck } from '../src/screens/MicroDeck.js';
+import { MicroScreen } from '../src/screens/MicroScreen.js';
 import { LAYOUT_PRESETS } from '../src/state/layouts.js';
 import { useDeck } from '../src/state/store.js';
 
@@ -134,5 +135,20 @@ describe('MicroDeck', () => {
     useDeck.getState().applyServerMsg(serverMsg('session_upsert', makeSession(), 1));
     render(<GridScreen />);
     expect(screen.getByText(/migrate to app router · working/)).toBeDefined();
+  });
+
+  it('MicroScreen falls back to the classic face without WebGL2', () => {
+    useDeck.getState().updateSettings({ rendering: '3d' });
+    useDeck.getState().applyServerMsg(serverMsg('session_upsert', makeSession(), 1));
+    render(<MicroScreen />);
+    // jsdom offers no WebGL2 context, so the CSS device must render.
+    expect(screen.getByRole('slider')).toBeDefined();
+  });
+
+  it('MicroScreen honors the classic rendering choice', () => {
+    useDeck.getState().updateSettings({ rendering: 'classic' });
+    useDeck.getState().applyServerMsg(serverMsg('session_upsert', makeSession(), 1));
+    render(<MicroScreen />);
+    expect(screen.getByRole('slider')).toBeDefined();
   });
 });

@@ -9,8 +9,10 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**'],
-      // The bootstrap file only mounts <App/>; it has no logic to assert.
-      exclude: ['src/main.tsx'],
+      // main.tsx only mounts <App/>. Micro3D is the WebGL device face —
+      // jsdom has no GPU, so it is exercised by the Playwright suite instead;
+      // its behavior lives in micro-model.ts, which unit tests do cover.
+      exclude: ['src/main.tsx', 'src/screens/Micro3D.tsx'],
       thresholds: {
         lines: 70,
         branches: 70,

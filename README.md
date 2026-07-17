@@ -14,7 +14,7 @@
 ## 30-second quickstart
 
 ```sh
-npx agentdeck
+npx agent-deck
 ```
 
 Scan the QR code the hub prints with your phone. That's it — the page pairs
@@ -22,7 +22,7 @@ itself, installs as a PWA if you want it to, and your agents show up as
 backlit tiles. No agents running yet? See the whole thing in motion first:
 
 ```sh
-npx agentdeck --demo
+npx agent-deck --demo
 ```
 
 ## Why this instead of plastic
@@ -65,7 +65,7 @@ flowchart LR
     WS -- "LAN · :3325 http · :3326 https" --> P["phone / tablet / spare screen<br/>(installable PWA)"]
 ```
 
-One `npx agentdeck` process is the hub: adapters normalize each harness into
+One `npx agent-deck` process is the hub: adapters normalize each harness into
 one `Session` shape, every change fans out over WebSocket, and a replay
 buffer means a phone that slept through twenty status changes replays all
 twenty on reconnect — the deck is never silently stale. The deck itself is a
@@ -82,9 +82,9 @@ pretty-printed input and a unified diff preview for file edits.
 **Claude Code, observed** — your own terminal sessions on the deck:
 
 ```sh
-agentdeck connect claude            # writes hooks to ~/.claude/settings.json
-agentdeck connect claude --project  # or just this project's .claude/settings.json
-agentdeck disconnect claude         # removes exactly what connect added
+agent-deck connect claude            # writes hooks to ~/.claude/settings.json
+agent-deck connect claude --project  # or just this project's .claude/settings.json
+agent-deck disconnect claude         # removes exactly what connect added
 ```
 
 While the hub is running, terminal sessions report status over local HTTP
@@ -95,7 +95,7 @@ answers within five minutes), the terminal prompt behaves exactly as before.
 **Codex, managed** — sessions run `codex exec --json` under the hood:
 streamed JSONL becomes live tiles, the dial maps to
 `model_reasoning_effort`, follow-up prompts resume the same thread, and
-sandbox policy presets are selectable per session. `agentdeck` verifies the
+sandbox policy presets are selectable per session. `agent-deck` verifies the
 installed Codex supports `--json` at startup and degrades honestly if not.
 
 ## Configuration
@@ -103,12 +103,12 @@ installed Codex supports `--json` at startup and degrades honestly if not.
 Everything lives in `~/.agentdeck/` — hand-editable JSON, validated with
 friendly errors:
 
-| File           | What it holds                                                         |
-| -------------- | --------------------------------------------------------------------- |
-| `config.json`  | `port`, `httpsPort`, `bind`, default theme, shell actions, templates  |
-| `devices.json` | paired device credentials (hashed) — `agentdeck devices list\|revoke` |
-| `cert/`        | the self-signed cert for the HTTPS lane                               |
-| `logs/`        | hub logs (pino)                                                       |
+| File           | What it holds                                                          |
+| -------------- | ---------------------------------------------------------------------- |
+| `config.json`  | `port`, `httpsPort`, `bind`, default theme, shell actions, templates   |
+| `devices.json` | paired device credentials (hashed) — `agent-deck devices list\|revoke` |
+| `cert/`        | the self-signed cert for the HTTPS lane                                |
+| `logs/`        | hub logs (pino)                                                        |
 
 Flags: `--demo`, `--port <n>`, `--localhost-only`, `--no-auth` (loud
 warning; trusted networks only).

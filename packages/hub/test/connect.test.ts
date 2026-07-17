@@ -28,7 +28,7 @@ function readSettings(path: string): Record<string, unknown> {
   return JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>;
 }
 
-describe('agentdeck connect claude', () => {
+describe('agent-deck connect claude', () => {
   it('writes hooks for every lifecycle event plus the waiting permission hook', () => {
     const result = connectClaude({ scope: 'user', port: 3325 });
     expect(result.changed).toBe(true);

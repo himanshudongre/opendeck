@@ -3,7 +3,7 @@ import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 /**
- * `agentdeck connect claude` — writes idempotent hook config into Claude
+ * `agent-deck connect claude` — writes idempotent hook config into Claude
  * Code's settings.json (user or project scope, SPEC §4.1) so terminal
  * sessions report to the hub over HTTP. `disconnect` removes exactly what
  * connect added and nothing else.

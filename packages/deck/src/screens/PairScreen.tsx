@@ -30,7 +30,7 @@ export function PairScreen() {
             <p className="mt-2 text-xs leading-relaxed text-ink-2">
               Run{' '}
               <code className="font-data" style={{ color: 'var(--brass)' }}>
-                npx agentdeck
+                npx agent-deck
               </code>{' '}
               on your dev machine and scan the QR code it prints. The code opens this page with a
               one-time token and pairs automatically.

@@ -222,7 +222,7 @@ describe('screens', () => {
   it('GridScreen shows the spec empty state', () => {
     render(<GridScreen />);
     expect(screen.getByText('No agents yet.')).toBeDefined();
-    expect(screen.getByText(/agentdeck --demo/)).toBeDefined();
+    expect(screen.getByText(/agent-deck --demo/)).toBeDefined();
   });
 
   it('GridScreen renders tiles and the control rail', () => {
@@ -270,7 +270,7 @@ describe('screens', () => {
   it('PairScreen explains the pairing flow', () => {
     render(<PairScreen />);
     expect(screen.getByText(/isn’t paired yet/)).toBeDefined();
-    expect(screen.getByText(/npx agentdeck/)).toBeDefined();
+    expect(screen.getByText(/npx agent-deck/)).toBeDefined();
   });
 
   it('SettingsScreen toggles sound and haptics', () => {

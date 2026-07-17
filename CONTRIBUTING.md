@@ -79,5 +79,5 @@ The pattern that keeps adapters testable, taken from the two that ship:
 ## Releasing
 
 Changesets drive versioning. `pnpm changeset` in your PR; the release
-workflow publishes `agentdeck` to npm with provenance when the release PR
+workflow publishes `agent-deck` to npm with provenance when the release PR
 merges.

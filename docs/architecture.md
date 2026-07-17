@@ -1,6 +1,6 @@
 # Architecture
 
-AgentDeck is one npm package (`agentdeck`) built from a pnpm monorepo of four
+AgentDeck is one npm package (`agent-deck`) built from a pnpm monorepo of four
 workspaces plus an E2E project. The data flow is a single direction:
 
 ```mermaid
@@ -83,14 +83,14 @@ needs no API keys or installed CLIs.
 
 ## Package map
 
-| Path                 | Role                                                                         |
-| -------------------- | ---------------------------------------------------------------------------- |
-| `packages/protocol`  | zod schemas + codecs; no runtime deps beyond zod                             |
-| `packages/hub`       | CLI + fastify + ws; adapters under `src/adapters/`; published as `agentdeck` |
-| `packages/deck`      | React 18 PWA; hand-built design system from SPEC §7 tokens                   |
-| `packages/simulator` | deterministic fleet for `--demo`, E2E, screenshots                           |
-| `e2e/`               | Playwright projects (iPhone 14 / iPad / desktop), latency + bundle gates     |
+| Path                 | Role                                                                          |
+| -------------------- | ----------------------------------------------------------------------------- |
+| `packages/protocol`  | zod schemas + codecs; no runtime deps beyond zod                              |
+| `packages/hub`       | CLI + fastify + ws; adapters under `src/adapters/`; published as `agent-deck` |
+| `packages/deck`      | React 18 PWA; hand-built design system from SPEC §7 tokens                    |
+| `packages/simulator` | deterministic fleet for `--demo`, E2E, screenshots                            |
+| `e2e/`               | Playwright projects (iPhone 14 / iPad / desktop), latency + bundle gates      |
 
 `@agentdeck/protocol` and `@agentdeck/simulator` are private; tsup bundles
 them into the published package, and the deck's built assets ship inside
-`dist/deck` so `npx agentdeck` is one artifact.
+`dist/deck` so `npx agent-deck` is one artifact.

@@ -133,7 +133,7 @@ function devicesRevoke(id: string): void {
 export function buildProgram(): Command {
   const program = new Command();
   program
-    .name('agentdeck')
+    .name('agent-deck')
     .description('A physical-feeling command deck for AI coding agents, made of software.')
     .version(pkg.version)
     .option('--demo', 'start with a simulated fleet — no agents or keys needed')

@@ -399,7 +399,7 @@ describe('websocket edge cases', () => {
     const err = await socket.next(
       (m) => m.type === 'error' && m.payload.code === 'version_mismatch',
     );
-    if (err.type === 'error') expect(err.payload.message).toContain('npx agentdeck@latest');
+    if (err.type === 'error') expect(err.payload.message).toContain('npx agent-deck@latest');
     socket.close();
   });
 

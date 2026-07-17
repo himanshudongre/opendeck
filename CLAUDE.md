@@ -18,14 +18,14 @@ pnpm perf               # latency harness + bundle-size gate
 ```
 
 Run single suites from a package: `pnpm --filter @agentdeck/protocol test`, or a single file:
-`pnpm --filter agentdeck test -- src/core/replay-buffer.test.ts`.
+`pnpm --filter agent-deck test -- src/core/replay-buffer.test.ts`.
 
 ## Architecture map
 
 ```
 packages/protocol   zod schemas + types for every WS/REST message. Single source of truth.
                     Both hub and deck validate at the boundary. No runtime deps beyond zod.
-packages/hub        Node CLI + server (published to npm as `agentdeck`).
+packages/hub        Node CLI + server (published to npm as `agent-deck`).
   src/cli.ts          commander entry: default run, --demo, connect/disconnect, devices
   src/core/           session registry, event bus, replay ring buffer
   src/server/         fastify REST + static deck, ws fan-out, auth, pairing
@@ -47,7 +47,7 @@ adapters only.
 - No `console.*` outside `packages/hub/src/logger.ts`. Hub code logs via pino; terminal
   output for humans goes through the logger's `term` helpers.
 - Workspace packages `@agentdeck/protocol` and `@agentdeck/simulator` are private; tsup
-  bundles them into the published `agentdeck` package (`noExternal`).
+  bundles them into the published `agent-deck` package (`noExternal`).
 - Adapters must verify CLI flags against the installed binary in `detect()` and degrade
   capabilities per session — never hard-fail the hub because a harness changed a flag.
 - Adapter behavior is locked by the shared contract suite in

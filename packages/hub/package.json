@@ -1,11 +1,11 @@
 {
-  "name": "agentdeck",
+  "name": "agent-deck",
   "version": "0.0.0",
   "description": "Turn any phone, tablet, or spare screen into a zero-lag control deck for AI coding agents.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "agentdeck": "./dist/cli.js"
+    "agent-deck": "./dist/cli.js"
   },
   "files": [
     "dist"

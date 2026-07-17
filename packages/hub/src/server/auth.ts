@@ -25,7 +25,7 @@ interface PairingToken {
 /**
  * Paired-device credentials (SPEC §8). Tokens are one-time and 10-minute
  * expiring; credentials are long-lived, stored hashed on disk, revocable via
- * `agentdeck devices revoke`.
+ * `agent-deck devices revoke`.
  */
 export class DeviceStore {
   private devices: Device[] = [];

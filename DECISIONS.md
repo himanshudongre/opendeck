@@ -179,6 +179,12 @@ Pair: single centered keycap panel — wordmark, one-line explanation, camera-le
 - Workshop's slab-level ink contrast is a known trade (light slab + dark keys want two ink ramps); the audit gate applies to the default theme, and the token editor lets users push it further. Recorded rather than hidden.
 - Full matrix re-run from a wiped node_modules: build, lint, typecheck, 280 unit tests, 19/19 E2E (0 skipped), latency p95 0.14 ms, bundle 120.8 KB gz. Banned-pattern greps (TODO/FIXME/HACK, console.*, placeholder copy, eslint-disable, @ts-ignore, `any`, .only/.skip/.todo) all clean.
 
+## Post-RC field fixes (2026-07-17, after first real device test)
+
+- **npm rename: `agentdeck` → `agent-deck`.** The unhyphenated name on the public registry belongs to an unrelated product ("Mobile control for your coding agents", v0.4.x) — `npx agentdeck` outside this repo runs _their_ hub, which is what a blank first-scan can look like. The brand stays AgentDeck; the package, bin, README commands, deck UI copy, protocol upgrade hint, and changeset all say `agent-deck` now.
+- **Older mobile WebKit support.** Vite 7's default target (~Safari 16) shipped `??=` syntax and a dependency call to `Object.hasOwn` (Safari 15.4+); on older iPhones/iPads the bundle never mounted — a silent dark slab. Deck now builds to `es2018`/`safari13`, guards `Object.hasOwn` in `src/lib/compat.ts` (imported first), and gives `color-mix` surfaces plain rgba fallbacks (notice/diff tints).
+- **Boot failures speak.** index.html carries an ES5 inline fallback: if `#root` is still empty after 6 s, the page explains the browser is too old and suggests another device — a blank screen is never mute again.
+
 ## Phase log
 
 - [x] Phase 0 — Recon

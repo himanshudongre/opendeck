@@ -47,7 +47,7 @@ const MISSING_DECK_PAGE = `<!doctype html>
       <p style="color: #9ba1ac">
         This hub is running from a source checkout without a deck build.
         Run <code>pnpm build</code> in the repository, then restart the hub.
-        Installed via npm? Reinstall with <code>npx agentdeck@latest</code>.
+        Installed via npm? Reinstall with <code>npx agent-deck@latest</code>.
       </p>
     </main>
   </body>

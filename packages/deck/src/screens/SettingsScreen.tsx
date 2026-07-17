@@ -153,7 +153,7 @@ export function SettingsScreen() {
         </Row>
         <p className="px-4 pt-2 text-[11px] leading-relaxed text-ink-3">
           Revoke other devices from the hub terminal with{' '}
-          <code className="font-data">agentdeck devices revoke &lt;id&gt;</code>.
+          <code className="font-data">agent-deck devices revoke &lt;id&gt;</code>.
         </p>
       </div>
     </div>

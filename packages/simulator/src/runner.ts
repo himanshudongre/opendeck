@@ -53,7 +53,7 @@ interface SessionRuntime {
 
 /**
  * Drives a deterministic scripted fleet against a SimHost (SPEC §4.4).
- * Load-bearing: `agentdeck --demo`, Playwright E2E, and the README GIF all
+ * Load-bearing: `agent-deck --demo`, Playwright E2E, and the README GIF all
  * run on this.
  */
 export class SimulatorFleet {

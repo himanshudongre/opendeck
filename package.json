@@ -7,7 +7,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm --filter agentdeck dev",
+    "dev": "pnpm --filter agent-deck dev",
     "build": "pnpm -r build",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",

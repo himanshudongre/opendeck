@@ -8,7 +8,7 @@ export interface DemoOptions {
 }
 
 /**
- * Bridges the scripted fleet onto the hub: `agentdeck --demo`. The simulator
+ * Bridges the scripted fleet onto the hub: `agent-deck --demo`. The simulator
  * knows nothing about the hub; this glue is the SimHost implementation.
  */
 export function startDemoFleet(hub: Hub, options: DemoOptions = {}): SimulatorFleet {

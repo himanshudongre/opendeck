@@ -173,7 +173,7 @@ describe('version mismatch', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.reason).toBe('version_mismatch');
-      expect(result.message).toContain('npx agentdeck@latest');
+      expect(result.message).toContain('npx agent-deck@latest');
     }
   });
 

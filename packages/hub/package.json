@@ -1,6 +1,6 @@
 {
   "name": "opendeck",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Turn any phone, tablet, or spare screen into a zero-lag control deck for AI coding agents.",
   "license": "MIT",
   "type": "module",

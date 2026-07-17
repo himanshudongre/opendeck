@@ -96,9 +96,10 @@ export function useMicroModel(): MicroModel {
     });
   };
 
+  // The question leads so truncation never eats it on narrow screens.
   const lcdLine = attention
     ? pending
-      ? `${attention.title} · approve ${pending.tool.name}?`
+      ? `approve ${pending.tool.name}? · ${attention.title}`
       : `${attention.title} · ${statusLabel(attention.status)}`
     : 'no agents · run opendeck --demo';
   const lcdStats = attention

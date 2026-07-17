@@ -6,7 +6,8 @@
   "scripts": {
     "e2e": "playwright test",
     "perf": "node scripts/perf.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

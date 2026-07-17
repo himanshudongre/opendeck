@@ -162,6 +162,14 @@ Pair: single centered keycap panel — wordmark, one-line explanation, camera-le
 - Voice-key gating: 127.0.0.1 is a secure context and chromium ships webkitSpeechRecognition, so E2E asserts the armed state; the insecure/unsupported branches are unit-tested where the context is controllable.
 - Perf harness measures input→ack over a real WS with sequential `subscribe` messages (200 samples): p95 0.22 ms on loopback vs the 30 ms budget. Bundle gate gzips deck js+css: 120.8 KB vs the 300 KB budget.
 
+## Docs & release engineering (Phase 8)
+
+- README media are generated, not staged: `pnpm --filter @agentdeck/e2e screenshots` drives the built hub's demo fleet with Playwright and writes docs/deck-graphite-phone.png, deck-focus-permission.png, deck-workshop-tablet.png, and demo.gif (recorded video → ffmpeg palette GIF). Regenerate after visual changes; the PNGs/GIF are committed because the README needs them on npm/GitHub.
+- The README's privacy claim is phrased verifiably (grep for network calls) rather than as an assertion of intent.
+- Known-limitations list in the FAQ states the Codex fixture provenance and the exec-mode approval gap plainly — honesty over gloss (SPEC §10: every claim true).
+- `npm pack` verification: tarball installed into a temp project; `agentdeck --version`, `--demo` boot, `/api/health`, deck HTML, and a 7-session snapshot all confirmed against the packed artifact.
+- Initial changeset is a major on `agentdeck` (0.0.0 → 1.0.0); private workspaces are excluded from versioning by the changesets `privatePackages` config.
+
 ## Phase log
 
 - [x] Phase 0 — Recon
@@ -172,5 +180,5 @@ Pair: single centered keycap panel — wordmark, one-line explanation, camera-le
 - [x] Phase 5 — Real adapters
 - [x] Phase 6 — Deck
 - [x] Phase 7 — E2E + perf
-- [ ] Phase 8 — Docs & release
+- [x] Phase 8 — Docs & release
 - [ ] Phase 9 — Adversarial self-review

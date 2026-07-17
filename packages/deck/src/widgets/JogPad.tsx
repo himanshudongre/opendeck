@@ -13,16 +13,16 @@ interface JogBinding {
 
 /** Four-direction flick pad mapped to prompt-template workflows (SPEC §6). */
 export const JOG_BINDINGS: Record<JogDirection, JogBinding> = {
-  up: { label: 'Fix tests', template: 'Run the failing tests and fix them.' },
+  up: { label: 'Tests', template: 'Run the failing tests and fix them.' },
   right: {
-    label: 'Review diff',
+    label: 'Diff',
     template: 'Review the current diff and list problems before anything else.',
   },
   down: {
     label: 'Commit',
     template: 'Commit the current work with a conventional commit message.',
   },
-  left: { label: 'Explain', template: 'Explain what you are doing right now and what remains.' },
+  left: { label: 'Status', template: 'Explain what you are doing right now and what remains.' },
 };
 
 const FLICK_THRESHOLD_PX = 24;
